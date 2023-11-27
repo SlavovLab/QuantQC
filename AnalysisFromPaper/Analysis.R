@@ -204,8 +204,9 @@ Pos_pep_cor <- as.data.frame(AppNote@pep.cor)
 Pos_pep_cor <- Pos_pep_cor %>% filter(Cor > .2)
 
 
-
-LF <- read.delim('/Users/andrewleduc/Library/CloudStorage/GoogleDrive-leduc.an@husky.neu.edu/.shortcut-targets-by-id/1uQ4exoKlaZAGnOG1iCJPzYN3ooYYZB7g/MS/Users/appnote/LF/report_2.tsv')
+# Searched LF bulk data can be downloaded from MASSIVE or Google drive
+# https://drive.google.com/drive/folders/1EKokFFDJQdig9Y19WmSE-iD-dYWfDKIC
+LF <- read.delim('path/report_2.tsv')
 LF_mat <- diann::diann_maxlfq(LF,group.header = "Protein.Group",quantity.header = "Ms1.Area")
 sect <- intersect(rownames(LF_mat),Pos_pep_cor$Protein )
 LF_mat2 <- LF_mat[sect,]
