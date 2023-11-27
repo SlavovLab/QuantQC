@@ -1,0 +1,236 @@
+---
+title: "Quant DO-MS"
+author: ""
+date: "11/29/2022"
+output: html_document
+params:
+  data_path: "data/file1.csv"
+  linker_path: "data/file2.csv"
+  isolation: "data/file3.csv"
+  prot_vis_umap: NULL
+
+  
+---
+
+```{r setup, include=FALSE}
+
+
+# Set parameters
+
+PIF <- .75
+PEP <- .04
+
+CV_thresh <- .43
+
+#species <- c('Mouse') #Mouse, Human
+
+
+```
+
+# Results {.tabset}
+
+```{r Pre_proccess, include=FALSE}
+
+
+#Read and format raw data, link MS runs to injection wells
+nPOP_obj_Exp <- MQ_to_nPOP(params$data_path,params$linker_path,PIF,PEP)
+
+
+# Normalize single cell runs to reference channel, 
+# filter out data points over twice reference
+# Turn long table format to Peptide X Cell matrix
+nPOP_obj_Exp <- TMT_Reference_channel_norm(nPOP_obj_Exp)
+
+
+
+## mapping cellenONE meta data to raw data
+nPOP_obj_Exp <- link_cellenONE_Raw(nPOP_obj_Exp,params$isolation)
+
+
+```
+
+
+## LC/MS Performance Statistics
+
+### IDs and intensities
+```{r, echo=FALSE,fig.width = 10, fig.height = 12}
+
+# Calculate statistics to look for decrease in LC/MS performance
+# over time
+nPOP_obj_Exp <- Calculate_run_order_statistics(nPOP_obj_Exp)
+
+
+# Plot MS Intensity Statistics
+PlotIntensityDrift(nPOP_obj_Exp)
+
+
+```
+
+
+### Retention time drift
+```{r, echo=FALSE,fig.width = 10, fig.height = 8}
+
+#Plot Retention time Statistics
+PlotRTDrift(nPOP_obj_Exp)
+
+
+```
+
+
+## Single Cell Statistics
+
+
+### Negative control vs real cell statistics
+```{r negative_ctrl ,echo=FALSE, fig.width = 11, fig.height = 4.5,warning=FALSE,message=FALSE}
+
+nPOP_obj_Exp <- EvaluateNegativeControls(nPOP_obj_Exp,.43)
+
+
+PlotNegCtrl(nPOP_obj_Exp,.43)
+
+
+nPOP_obj_Exp <- FilterBadCells(nPOP_obj_Exp,.43)
+
+```
+
+### Carrier Statistics
+
+```{r carrier, echo=FALSE, fig.height=4.5, fig.width=11, warning=FALSE,message=FALSE}
+
+
+
+#Compute the size relative to the carrier of each cell
+PlotSCtoCarrierRatio(nPOP_obj_Exp)
+
+```
+
+### Ms1 vs Ms2 Peptide correlations
+
+```{r carrier, echo=FALSE, fig.height=4.5, fig.width=11, warning=FALSE,message=FALSE}
+
+
+PlotMS1vMS2(Trachea_3_7_prot)
+
+```
+
+
+### Protein and peptide numbers per cell
+
+```{r Collapse and count, echo=FALSE,fig.width = 11, fig.height = 4.5,warning=FALSE,message=FALSE}
+
+nPOP_obj_Exp <- CollapseToProtein(nPOP_obj_Exp,1)
+
+PlotProtAndPep(nPOP_obj_Exp)
+
+```
+
+
+### Data completness based on filtering (uses intersected subset of proteins from channel qval filtered data)
+
+
+```{r completness_Statistics, echo=FALSE,fig.width = 11.5, fig.height = 4.5,warning=FALSE,message=FALSE}
+
+PlotDataComplete(nPOP_obj_Exp)
+
+```
+
+### Correlations between peptides mapping to protein compared to variance
+
+```{r correlations_pep to prot, echo=FALSE,fig.width = 7, fig.height = 4.5}
+
+#Compute correlations between peptides mapping to same protein
+
+nPOP_obj_Exp <- SharedPeptideCor(nPOP_obj_Exp)
+
+PlotPepCor(nPOP_obj_Exp)
+
+
+```
+
+### PCA and batch effects checks
+```{r PCA, echo=FALSE, fig.height=4.5, fig.width=11, message=FALSE, warning=FALSE, include=TRUE}
+
+
+# Impute, still old imputation very slow, soon will update with C++ implementation
+nPOP_obj_Exp <- KNN_impute(nPOP_obj_Exp)
+
+
+# currently does label and LC/MS run but options comming soon
+nPOP_obj_Exp <- BatchCorrect(nPOP_obj_Exp)
+
+
+
+nPOP_obj_Exp <- ComputePCA(nPOP_obj_Exp)
+
+# plot PCA options are "Run order" "Total protein" "Condition" "Label"
+PlotPCA(nPOP_obj_Exp, by = "Condition")
+
+
+PlotPCA(nPOP_obj_Exp, by = "Label")
+
+
+PlotPCA(nPOP_obj_Exp, by = "Run order")
+
+
+
+```
+
+
+
+### Additional dimensionality reduction and clustering
+
+
+```{r UMAP, echo=FALSE, fig.height=4.5, fig.width=11, message=FALSE, warning=FALSE, include=TRUE}
+
+nPOP_obj_Exp <- ComputeUMAP(nPOP_obj_Exp)
+
+# plots by cluster
+PlotUMAP(nPOP_obj_Exp)
+
+
+
+
+```
+
+
+### Viz proteins of interest
+```{r Plotting_Stats, warning = FALSE, message = FALSE,echo=FALSE,fig.width = 11, fig.height = 4.5}
+
+
+fig1 <- ProteinClustConsistency(nPOP_obj_Exp, prot = params$prot_vis_umap, type = 'line')
+  
+
+fig1
+
+```
+
+### Advanced Peptide mapping to a Protein Correlations
+
+```{r r Advanced Pep to prot Correlations, echo=FALSE, fig.height=4.5, fig.width=11, message=FALSE, warning=FALSE, include=TRUE}
+
+
+```
+
+
+
+## CellenONE_info
+
+### Cell type positions across slide
+```{r, echo=FALSE,fig.width = 15, fig.height = 10}
+
+# print the cell IDs overlayed on the positions of the slide
+
+PlotSlideLayout_celltype(nPOP_obj_Exp)
+
+
+
+```
+
+### Label position across slide
+```{r, echo=FALSE,fig.width = 13, fig.height = 10}
+
+# print the cell IDs overlayed on the positions of the label
+PlotSlideLayout_label(nPOP_obj_Exp)
+
+
+```

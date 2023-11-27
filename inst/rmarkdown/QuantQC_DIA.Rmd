@@ -1,0 +1,245 @@
+---
+title: "Quant DO-MS"
+author: ""
+date: "11/29/2022"
+output: html_document
+params:
+  data_path: "data/file1.csv"
+  linker_path: "data/file2.csv"
+  isolation: "data/file3.csv"
+  prot_vis_umap: NULL
+  ChQ: .1
+  intense_filt: 6
+  plex_exp: 3
+  carrier_used: F
+  
+---
+
+
+# Results {.tabset}
+
+```{r Pre_proccess, include=FALSE}
+
+#Read and format raw data, link MS runs to injection wells
+
+
+
+QQC_obj_Exp <- DIANN_to_QQC(params$data_path,params$linker_path, plex = params$plex_exp, carrier = params$carrier_used)
+
+
+# Normalize single cell runs to reference channel, 
+# filter out data points over twice reference
+# Turn long table format to Peptide X Cell matrix
+QQC_obj_Exp <- cellXpeptide(QQC_obj_Exp, chQVal = params$ChQ)
+
+
+## mapping cellenONE meta data to raw data
+QQC_obj_Exp <- link_cellenONE_Raw(QQC_obj_Exp,params$isolation)
+
+
+```
+
+
+## LC/MS Performance Statistics
+
+### IDs and intensities
+```{r, echo=FALSE,fig.width = 10, fig.height = 12}
+
+# Calculate statistics to look for decrease in LC/MS performance
+# over time
+QQC_obj_Exp <- Calculate_run_order_statistics(QQC_obj_Exp)
+
+
+# Plot MS Intensity Statistics
+PlotIntensityDrift(QQC_obj_Exp)
+
+
+```
+
+
+### Retention time drift
+```{r, echo=FALSE,fig.width = 10, fig.height = 8}
+
+#Plot Retention time Statistics
+PlotRTDrift(QQC_obj_Exp)
+
+
+```
+
+
+## Single Cell Statistics
+
+
+### Negative control / single cell comparison
+
+Here we plot the summed intensities across all peptides from a given single cell, for all single cells and negative controls in the data.
+```{r negative_ctrl ,echo=FALSE, fig.width = 11, fig.height = 4.5,warning=FALSE,message=FALSE}
+
+QQC_obj_Exp <- EvaluateNegativeControls(QQC_obj_Exp)
+
+
+PlotNegCtrl(QQC_obj_Exp)
+
+
+QQC_obj_Exp <- FilterBadCells(QQC_obj_Exp, min_intens = 6)
+
+```
+
+### Carrier Statistics
+
+```{r carrier, echo=FALSE, fig.height=4.5, fig.width=11, warning=FALSE,message=FALSE}
+
+#Compute the size relative to the carrier of each cell
+PlotSCtoCarrierRatio(QQC_obj_Exp)
+
+```
+
+
+### Protein and peptide numbers per cell
+
+All the peptides plotted are identified at 1% global FDR. 
+
+```{r Collapse and count, echo=FALSE,fig.width = 11, fig.height = 4.5,warning=FALSE,message=FALSE}
+
+QQC_obj_Exp <- CollapseToProtein(QQC_obj_Exp,1)
+
+
+PlotProtAndPep(QQC_obj_Exp)
+
+```
+
+
+### Data completness based on filtering (uses intersected subset of proteins from channel qval filtered data)
+
+
+```{r completness_Statistics, echo=FALSE,fig.width = 11.5, fig.height = 4.5,warning=FALSE,message=FALSE}
+
+PlotDataComplete(QQC_obj_Exp)
+
+```
+
+### Correlations between peptides mapping to protein compared to variance
+
+```{r correlations_pep to prot, echo=FALSE,fig.width = 7, fig.height = 4.5}
+
+#Compute correlations between peptides mapping to same protein
+
+QQC_obj_Exp <- SharedPeptideCor(QQC_obj_Exp)
+
+PlotPepCor(QQC_obj_Exp)
+
+
+```
+
+
+### Cell size information
+
+
+
+```{r cell size info, echo=FALSE,fig.width = 7, fig.height = 4.5}
+
+#Compute correlations between peptides mapping to same protein
+
+PlotCellSizeVsIntensity(QQC_obj_Exp, type = 'sample')
+
+```
+
+### PCA and batch effects checks
+```{r PCA, echo=FALSE, fig.height=4.5, fig.width=11, message=FALSE, warning=FALSE, include=TRUE}
+
+# Impute, still old imputation very slow, soon will update with C++ implementation
+QQC_obj_Exp <- KNN_impute(QQC_obj_Exp)
+
+
+# currently does label and LC/MS run but options comming soon
+#QQC_obj_Exp <- BatchCorrect(QQC_obj_Exp,label = T)
+
+
+
+QQC_obj_Exp <- ComputePCA(QQC_obj_Exp)
+
+# plot PCA options are "Run order" "Total protein" "Condition" "Label"
+PlotPCA(QQC_obj_Exp, by = "Condition")
+
+
+PlotPCA(QQC_obj_Exp, by = "Label")
+
+
+PlotPCA(QQC_obj_Exp, by = "Run order")
+
+
+PlotPCA(QQC_obj_Exp, by = "Total protein")
+
+
+
+
+
+```
+
+
+
+### Additional dimensionality reduction and clustering
+
+
+```{r UMAP ,echo=FALSE, fig.height=4.5, fig.width=11, message=FALSE, warning=FALSE, include=TRUE}
+
+if(is.null(params$prot_vis_umap)==F){
+QQC_obj_Exp <- ComputeUMAP(QQC_obj_Exp)
+
+# plots by cluster
+PlotUMAP(QQC_obj_Exp)
+}
+
+
+
+```
+
+
+### Viz proteins of interest
+```{r Plotting_Stats, warning = FALSE, message = FALSE,echo=FALSE,fig.width = 11, fig.height = 4.5}
+
+if(is.null(params$prot_vis_umap)==F){
+  
+  fig1 <- ProteinClustConsistency(nPOP_obj_Exp, prot = params$prot_vis_umap, type = 'line')
+  
+
+  fig1
+  
+}else{
+  print("No Protein added")
+}
+
+
+```
+
+
+
+
+
+
+
+
+
+## CellenONE_info
+
+The well position each set is transported into is overlayed in the middle of the cluster of cells that compose a labeled set.
+
+### Cell type positions across slide
+```{r, echo=FALSE,fig.width = 15, fig.height = 10}
+
+# print the cell IDs overlayed on the positions of the slide
+
+PlotSlideLayout_celltype(QQC_obj_Exp)
+
+
+
+```
+
+### Label position across slide
+```{r, echo=FALSE,fig.width = 13, fig.height = 10}
+
+# print the cell IDs overlayed on the positions of the label
+PlotSlideLayout_label(QQC_obj_Exp)
+
+
+```
