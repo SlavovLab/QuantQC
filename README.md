@@ -2,9 +2,9 @@
 
 
 
-* [nPOP sample preparation Website](https://scp.slavovlab.net/nPOP) &nbsp; | &nbsp; [Download data from origninal publication](https://scp.slavovlab.net/Leduc_et_al_2022) | &nbsp; [Download data from protocol](https://scp.slavovlab.net/Leduc_et_al_2022)
+* [nPOP sample preparation Website](https://scp.slavovlab.net/nPOP) &nbsp; | &nbsp; [Download data from origninal publication](https://scp.slavovlab.net/Leduc_et_al_2022) | &nbsp; [Download data from protocol](https://scp.slavovlab.net/Leduc_et_al_2023)
 
-* [Preprint of Protocol](https://scp.slavovlab.net/Leduc_et_al_2022)
+* [Preprint of Protocol](https://scp.slavovlab.net/Leduc_et_al_2023)
 
 * [Preprint Original Article](https://www.biorxiv.org/content/10.1101/2021.11.03.467007v2) &nbsp; | &nbsp; [*Genome Biology* Article](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-022-02817-5)
 
@@ -50,7 +50,7 @@ library(QuantQC)
 QuantQC is an R package
 
 -->
-The manuscript is freely available on bioRxiv: [Leduc et al., 2023](https://www.biorxiv.org/content/10.1101/2021.11.03.467007v2).
+The manuscript is freely available on bioRxiv: [Leduc et al., 2023](https://www.biorxiv.org/content/10.1101/2023.11.27.568927v1).
 
 For more information, contact [Slavov Laboratory](https://slavovlab.net) or directly [Andrew Leduc](https://coe.northeastern.edu/people/slavov-nikolai/)
 
