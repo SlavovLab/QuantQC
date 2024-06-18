@@ -4,7 +4,7 @@
 \alias{cellXpeptide_DIA}
 \title{Add two numbers.}
 \usage{
-cellXpeptide_DIA(QQC, chQVal = 1)
+cellXpeptide_DIA(QQC, TQVal, chQVal)
 }
 \arguments{
 \item{x}{A numeric value.}

@@ -9,29 +9,29 @@ Description: More about what it does (maybe more than one line)
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
-Depends: data.table, genefilter, sva 
 Remotes: 
   remotes
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.0
 Imports:
-  BiocManager (>= 3.14),
+  BiocManager,
+  xgboost,
+  data.table,
   seqinr,
+  genefilter,
   dplyr,
   stringr,
+  sva,
   psych,
   dplyr,
   reshape2,
   ggplot2,
   ggpubr,
   patchwork,
-  genefilter,
   matrixStats,
   gghighlight,
   viridis,
   ggpointdensity,
-  sva,
   yaImpute,
   tidyr,
-  data.table,
   stringr,
   Seurat

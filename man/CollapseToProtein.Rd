@@ -4,7 +4,7 @@
 \alias{CollapseToProtein}
 \title{Add two numbers.}
 \usage{
-CollapseToProtein(QQC, opt)
+CollapseToProtein(QQC, opt, norm = "ref")
 }
 \arguments{
 \item{x}{A numeric value.}

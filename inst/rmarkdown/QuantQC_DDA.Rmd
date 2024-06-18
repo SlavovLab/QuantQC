@@ -1,5 +1,5 @@
 ---
-title: "Quant DO-MS"
+title: "QuantQC Report"
 author: ""
 date: "11/29/2022"
 output: html_document
@@ -7,6 +7,8 @@ params:
   data_path: "data/file1.csv"
   linker_path: "data/file2.csv"
   isolation: "data/file3.csv"
+  plex: 29
+  CV_thresh: .4
   prot_vis_umap: NULL
 
   
@@ -17,10 +19,10 @@ params:
 
 # Set parameters
 
-PIF <- .75
-PEP <- .04
+PIF <- .6
+PEP <- .07
 
-CV_thresh <- .43
+CV_thresh <- params$CV_thresh
 
 #species <- c('Mouse') #Mouse, Human
 
@@ -33,7 +35,7 @@ CV_thresh <- .43
 
 
 #Read and format raw data, link MS runs to injection wells
-nPOP_obj_Exp <- MQ_to_nPOP(params$data_path,params$linker_path,PIF,PEP)
+nPOP_obj_Exp <- MQ_to_QQC(params$data_path,params$linker_path, plex = params$plex, PIF_in = PIF,PEP_in = PEP)
 
 
 # Normalize single cell runs to reference channel, 
@@ -83,13 +85,13 @@ PlotRTDrift(nPOP_obj_Exp)
 ### Negative control vs real cell statistics
 ```{r negative_ctrl ,echo=FALSE, fig.width = 11, fig.height = 4.5,warning=FALSE,message=FALSE}
 
-nPOP_obj_Exp <- EvaluateNegativeControls(nPOP_obj_Exp,.43)
+nPOP_obj_Exp <- EvaluateNegativeControls(nPOP_obj_Exp)
 
 
-PlotNegCtrl(nPOP_obj_Exp,.43)
+PlotNegCtrl(nPOP_obj_Exp,params$CV_thresh)
 
 
-nPOP_obj_Exp <- FilterBadCells(nPOP_obj_Exp,.43)
+nPOP_obj_Exp <- FilterBadCells(nPOP_obj_Exp,params$CV_thresh)
 
 ```
 
@@ -104,14 +106,6 @@ PlotSCtoCarrierRatio(nPOP_obj_Exp)
 
 ```
 
-### Ms1 vs Ms2 Peptide correlations
-
-```{r carrier, echo=FALSE, fig.height=4.5, fig.width=11, warning=FALSE,message=FALSE}
-
-
-PlotMS1vMS2(Trachea_3_7_prot)
-
-```
 
 
 ### Protein and peptide numbers per cell
@@ -156,7 +150,7 @@ nPOP_obj_Exp <- KNN_impute(nPOP_obj_Exp)
 
 
 # currently does label and LC/MS run but options comming soon
-nPOP_obj_Exp <- BatchCorrect(nPOP_obj_Exp)
+nPOP_obj_Exp <- BatchCorrect(nPOP_obj_Exp, run = T,labels = F)
 
 
 
@@ -182,10 +176,10 @@ PlotPCA(nPOP_obj_Exp, by = "Run order")
 
 ```{r UMAP, echo=FALSE, fig.height=4.5, fig.width=11, message=FALSE, warning=FALSE, include=TRUE}
 
-nPOP_obj_Exp <- ComputeUMAP(nPOP_obj_Exp)
+#nPOP_obj_Exp <- ComputeUMAP(nPOP_obj_Exp)
 
 # plots by cluster
-PlotUMAP(nPOP_obj_Exp)
+#PlotUMAP(nPOP_obj_Exp)
 
 
 
@@ -197,10 +191,10 @@ PlotUMAP(nPOP_obj_Exp)
 ```{r Plotting_Stats, warning = FALSE, message = FALSE,echo=FALSE,fig.width = 11, fig.height = 4.5}
 
 
-fig1 <- ProteinClustConsistency(nPOP_obj_Exp, prot = params$prot_vis_umap, type = 'line')
+#fig1 <- ProteinClustConsistency(nPOP_obj_Exp, prot = params$prot_vis_umap, type = 'line')
   
 
-fig1
+#fig1
 
 ```
 

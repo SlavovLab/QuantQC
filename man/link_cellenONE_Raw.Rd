@@ -4,7 +4,7 @@
 \alias{link_cellenONE_Raw}
 \title{Link CellenONE metadata}
 \usage{
-link_cellenONE_Raw(QQC, allCells)
+link_cellenONE_Raw(QQC, cells_file)
 }
 \arguments{
 \item{QQC}{A QuantQC object}

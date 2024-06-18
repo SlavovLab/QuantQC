@@ -35,20 +35,22 @@ The QuantQC package can be installed from github: https://github.com/Andrew-Ledu
 
 ```{r setup, include=T, warning=FALSE, message=FALSE}
 
-# remotes::github_install("https://github.com/Andrew-Leduc/QuantQC")
+# devtools::install_github("https://github.com/Andrew-Leduc/QuantQC")
+
 
 library(QuantQC)
 
 # Can make this an individual file or a path it reads all files inside
-data_path <- '/Users/andrewleduc/Desktop/round2_Data/prep2_files/data'
+data_path <- '/Users/andrewleduc/Library/CloudStorage/GoogleDrive-research@slavovlab.net/.shortcut-targets-by-id/1uQ4exoKlaZAGnOG1iCJPzYN3ooYYZB7g/MS/Users/aleduc/TMT29/Protocol_final_data/All_1p_FDR/evidence.txt'
 
 # check out the linker to see what it should look like, super simple, column names need to be same
-link_path <- '/Users/andrewleduc/Desktop/round2_Data/prep2_files/linker_age.csv'
+link_path <- '/Users/andrewleduc/Desktop/Github/QuantQC/AnalysisFromPaper/pSCoPE/linker.csv'
 
 
 ## Read in cell isolation files from CellenONE 
-one <-"/Users/andrewleduc/Desktop/round2_Data/prep2_files/Young_isolated.xls"
-two <- "/Users/andrewleduc/Desktop/round2_Data/prep2_files/old_isolated.xls"
+Mel <-"/Users/andrewleduc/Desktop/Github/QuantQC/AnalysisFromPaper/pSCoPE/Melanoma_isolated.xls"
+Mon <- "/Users/andrewleduc/Desktop/Github/QuantQC/AnalysisFromPaper/pSCoPE/Monocyte_isolated.xls"
+PDAC_f <- "/Users/andrewleduc/Desktop/Github/QuantQC/AnalysisFromPaper/pSCoPE/PDAC_isolated.xls"
 
 
 ```
@@ -57,8 +59,9 @@ Cell isolation files will be compiled into a list with the name specifying the s
 
 ```{r}
 
-all_cells <- list(young = one,
-                  old = two)
+all_cells <- list(Melanoma = Mel,
+                  Monocyte = Mon,
+                  PDAC = PDAC_f)
 
 ```
 
@@ -68,45 +71,35 @@ all_cells <- list(young = one,
 QuantQC allows you to quickly generate QC reports for DIA or DDA experiments. Some aspects will vary as some analysis are more applicable for DIA or DDA style experiments. Work flows are mostly the same by deviations will be explained as we go through functions step by step.
 
 Example reports can be found here:
-  *[DDA](https://www.google.com/)
-  *[DIA](https://www.google.com/)
+  *[DDA](https://drive.google.com/drive/folders/10e1IAtJZEOfioI5pEjb0ZM8u4IpEjcON)
+  *[DIA](https://drive.google.com/drive/folders/1MaGU91kektAHaM2kebuRTvwHHDp_bbLN)
 
 
 ```{r, eval = FALSE}
-
-# input character vector of proteins you'd like to see visualized in report
-prot_vis_umap <- c('P33267')
 
 output_path  <- "/Users/andrewleduc/Desktop/round2_Data/DDA.html"
 
   # DDA instant report generation
 
+
 Gen_QQC_report_DDA(data_path = data_path,
                   linker_path = link_path,
                   isolation = all_cells,
-                  prot_vis_umap = prot_vis_umap,
-                  output_path = output_path)
+                  output_path = output_path,
+                  plex_exp = 29,
+                  CV_thresh = .4)
 
 
   # DIA instant report generation
 
-Gen_QQC_report_DDA(data_path = data_path,
+Gen_QQC_report_DIA(data_path = data_path,
                   linker_path = link_path,
                   isolation = all_cells,
                   prot_vis_umap = prot_vis_umap,
+                  plex_exp = 3,
+                  carrier_used = F,
+                  ChQ = .3,
                   output_path = output_path)
-
-
-  ## If you did not do an nPOP experiment, add in argument for more advanced meta data
-
-# Argument: SamplePrep = 'custom'
-
-Gen_QQC_report_DDA(data_path = data_path,
-                  linker_path = link_path,
-                  isolation = all_cells,
-                  prot_vis_umap = prot_vis_umap,
-                  output_path = output_path,
-                  SamplePrep = 'custom')
 
 
 ```
@@ -124,13 +117,11 @@ The first step of the workflow is to read in the raw data and generate our QQC o
 
 * link_path: path to file linking ms runs to well of 384 plate from injection
 
-**DIA params:**
-
 * plex: amount of multiplexing
 
+**DIA params:**
+
 * carrier: use of carrier channel
-
-
 
 **DDA params:**
 
@@ -142,12 +133,12 @@ The first step of the workflow is to read in the raw data and generate our QQC o
 
   # DDA
 
-Trachea <- MQ_to_QQC(data_path,link_path,PIF = .75, PEP = .07)
+Protocol_DDA <- MQ_to_QQC(data_path,link_path,plex = 29, PIF = .75, PEP = .07)
 
 
   # DIA
 
-# Trachea <- DIANN_to_QQC(data_path,linker_path, plex = 2, carrier = T)
+# Protocol_DIA <- DIANN_to_QQC(data_path,linker_path, plex = 2, carrier = T)
 
 
 
@@ -182,12 +173,12 @@ For DDA experiments, the reference channel is added in addition to the carrier a
 
   # DDA
 
-Trachea <- cellXpeptide(Trachea)
+Protocol_DDA <- cellXpeptide(Protocol_DDA)
 
 
   # DIA
 
-# Trachea <- cellXpeptide(Trachea, ChQ = .01)
+# Protocol_DIA <- cellXpeptide(Protocol_DIA, ChQ = .01)
 
 
 
@@ -204,15 +195,12 @@ The cellenONE records characteristics of cells sorted for nPOP experiments inclu
 
 * named list of cell isolation files
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 
 ## mapping cellenONE meta data to raw data
 
-Trachea <- link_cellenONE_Raw(Trachea,all_cells)
+Protocol_DDA <- link_cellenONE_Raw(Protocol_DDA,all_cells)
 
-## If you did not perform the nPOP sample preparation
-
-# Trachea <- link_manual_Raw(Trachea)
 
 ```
 
@@ -223,10 +211,10 @@ Experimental design over the nPOP slide can be plotted for easy visualization if
 
 
 
-  PlotSlideLayout_celltype(Trachea)
+  PlotSlideLayout_celltype(Protocol_DDA)
 
 
-  PlotSlideLayout_label(Trachea)
+  PlotSlideLayout_label(Protocol_DDA)
   
   
 
@@ -243,11 +231,11 @@ Efficiency of peptide delivery through Ms1 intensities and efficiency of fragmen
 ```{r, fig.width = 10, fig.height = 12, fig.align='center'}
 # Calculate statistics to look for decrease in LC/MS performance
 # over time
-Trachea <- Calculate_run_order_statistics(Trachea)
+Protocol_DDA <- Calculate_run_order_statistics(Protocol_DDA)
 
 
 # Plot MS Intensity Statistics
-PlotIntensityDrift(Trachea)
+PlotIntensityDrift(Protocol_DDA)
 
 
 
@@ -258,7 +246,8 @@ PlotIntensityDrift(Trachea)
 ```{r,fig.width = 10, fig.height = 8, fig.align='center'}
 
 #Plot Retention time Statistics
-PlotRTDrift(Trachea)
+PlotRTDrift(Protocol_DDA)
+
 ```
 
 # Evaluating negative controls and filtering failed cells
@@ -281,7 +270,7 @@ Negative controls are important to evaluate any errors in sample preperation. Th
 
 
 # Test negative controls, i.e. samples with no cell
-Trachea <- EvaluateNegativeControls(Trachea, CV_thresh = .43)
+Protocol_DDA <- EvaluateNegativeControls(Protocol_DDA)
 
 
 
@@ -295,11 +284,11 @@ Plots comparing single cell peptide identification to negative controls and CVs 
 
   # DDA
 
-PlotNegCtrl(Trachea, CV_thresh = .43)
+PlotNegCtrl(Protocol_DDA, CV_thresh = .38)
 
   # DIA
 
-#PlotNegCtrl(Trachea)
+#PlotNegCtrl(Protocol_DIA)
 
 ```
 
@@ -308,7 +297,7 @@ Based off visualization, filtering is then performed, removing columns from the 
 ```{r, warning=FALSE, message=FALSE}
 
 # filter bad cells based off above plot with CV and min pep
-Trachea <- FilterBadCells(Trachea, CV_thresh = .43, min_pep = 500)
+Protocol_DDA <- FilterBadCells(Protocol_DDA, CV_thresh = .38)
 
 ```
 
@@ -322,14 +311,13 @@ Different options are available for collapsing to protein level:
 (**2**) [DirectLFQ](https://www.biorxiv.org/content/10.1101/2023.02.17.528962v1)
 
 
-
-(**3**) [RefQuant](https://www.biorxiv.org/content/10.1101/2022.12.02.518917v1)
+(**3**) DirectLFQ_with_carrier_norm
 
 
 
 ```{r, warning=FALSE, message=FALSE}
 
-Trachea <- CollapseToProtein(Trachea,1)
+Protocol_DDA <- CollapseToProtein(Protocol_DDA,1)
 
 ```
 
@@ -346,9 +334,9 @@ Here we check the coverage of proteins and peptides across single cells, and exa
 
 ```{r, fig.width = 10, fig.align ='center'}
 
-PlotProtAndPep(Trachea)
+PlotProtAndPep(Protocol_DDA)
 
-PlotDataComplete(Trachea)
+PlotDataComplete(Protocol_DDA)
 
 ```
 
@@ -364,7 +352,7 @@ To evaluate recovery of our single cell sample prep, QuantQC evaluates two metri
 ```{r, fig.align='center', fig.width = 10, fig.align ='center'}
 
 # Compute the size relative to the carrier of each cell
-PlotSCtoCarrierRatio(Trachea)
+PlotSCtoCarrierRatio(Protocol_DDA)
 
 
 ```
@@ -381,7 +369,7 @@ PlotSCtoCarrierRatio(Trachea)
 
 
 # Plot cell size vs intensity in MS, options to color code by" "Run order" or "sample"
-PlotCellSizeVsIntensity(Trachea, type = 'Run order')
+PlotCellSizeVsIntensity(Protocol_DDA, type = 'sample')
 
 
 ```
@@ -394,9 +382,9 @@ PlotCellSizeVsIntensity(Trachea, type = 'Run order')
 
 ```{r, fig.align='center'}
 
-Trachea <- SharedPeptideCor(Trachea)
+Protocol_DDA <- SharedPeptideCor(Protocol_DDA)
 
-PlotPepCor(Trachea)
+PlotPepCor(Protocol_DDA)
 
 
 ```
@@ -409,7 +397,7 @@ PlotPepCor(Trachea)
 
   # DIA Only
 
-PlotMS1vMS2(Trachea)
+PlotMS1vMS2(Protocol_DIA)
 
 ```
 
@@ -418,11 +406,16 @@ PlotMS1vMS2(Trachea)
 
 ```{r}
 # Impute, still old imputation very slow, soon will update with C++ implementation
-Trachea <- KNN_impute(Trachea)
+Protocol_DDA <- KNN_impute(Protocol_DDA)
 
 
 # currently does label and LC/MS run but options comming soon
-Trachea <- BatchCorrect(Trachea)
+
+
+# no batch correcting used for this data set
+
+#Protocol_DDA <- BatchCorrect(Protocol_DDA,run = T,labels = F)
+
 
 
 
@@ -445,10 +438,10 @@ PCA allows us to visualize different orthogonal sources of variance. Exploring P
 ```{r, fig.align='center'}
 
 
-Trachea <- ComputePCA(Trachea)
+Protocol_DDA <- ComputePCA(Protocol_DDA)
 
 
-PlotPCA(Trachea, by = "Run order")
+PlotPCA(Protocol_DDA, by = "Run order")
 
 
 
@@ -464,7 +457,7 @@ Now that we have the sources variance sorted out, lets search for our biological
 ```{r, message=FALSE, warning=FALSE, results = 'hide'}
 
 
-Trachea <- ComputeUMAP(Trachea)
+Protocol_DDA <- ComputeUMAP(Protocol_DDA)
 
 
 ```
@@ -473,16 +466,16 @@ Trachea <- ComputeUMAP(Trachea)
 Protein expression plotted on UMAP to identify cell clusters.
 
 
-```{r,  message=FALSE, warning=FALSE, fig.align='center'}
+```{r,  message=FALSE, warning=FALSE, fig.align='center', eval = F}
 
 
 # plots by cluster
-PlotUMAP(Trachea)
+PlotUMAP(Protocol_DDA)
 
 
 
 # Color code umap by proteins
-FeatureUMAP(Trachea, prot = 'P40936', imputed = F)
+FeatureUMAP(Protocol_DDA, prot = 'P40936', imputed = F)
 
 
 
@@ -492,13 +485,12 @@ FeatureUMAP(Trachea, prot = 'P40936', imputed = F)
 Now we can double check that expression by examining the consistency of quantitation between multiple peptides derived from the protein of interest.
 
 
-```{r, message=FALSE, warning=FALSE, fig.align='center'}
+```{r, message=FALSE, warning=FALSE, fig.align='center',eval=FALSE}
 
 
 
 # Cool plot that does some cool stuff, try it! ;)
-ProteinClustConsistency(Trachea, prot = 'P40936', type = 'line')
-
+ProteinClustConsistency(Protocol_DDA, prot = 'P40936', type = 'line')
 
 
 

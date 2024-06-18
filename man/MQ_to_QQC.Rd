@@ -4,7 +4,7 @@
 \alias{MQ_to_QQC}
 \title{MaxQuant to QQC}
 \usage{
-MQ_to_QQC(data_path, linker, PIF_in, PEP_in)
+MQ_to_QQC(data_path, linker, plex, PIF_in, PEP_in)
 }
 \arguments{
 \item{x}{A numeric value.}

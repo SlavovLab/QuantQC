@@ -4,7 +4,7 @@
 \alias{FilterBadCells}
 \title{Add two numbers.}
 \usage{
-FilterBadCells(QQC, CV_thresh = NA, min_pep = NA)
+FilterBadCells(QQC, CV_thresh = NA, min_intens = NA)
 }
 \arguments{
 \item{x}{A numeric value.}

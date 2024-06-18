@@ -4,7 +4,7 @@
 \alias{BatchCorrect}
 \title{Add two numbers.}
 \usage{
-BatchCorrect(QQC, labels = T, run = F, batch = T)
+BatchCorrect(QQC, labels = T, run = T, batch = F, norm = "ref")
 }
 \arguments{
 \item{x}{A numeric value.}

@@ -7,9 +7,10 @@
 Gen_QQC_report_DDA(
   data_path,
   linker_path,
+  plex_exp,
+  output_path = "output_report.html",
   isolation,
-  prot_vis_umap = NULL,
-  output_path = "output_report.html"
+  CV_thresh = 0.4
 )
 }
 \arguments{

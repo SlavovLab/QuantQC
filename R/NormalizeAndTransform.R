@@ -43,11 +43,13 @@ TMT_Reference_channel_norm <- function(QQC){
 
   sc.data <- QQC@raw_data
 
+  sc.data <- sc.data %>% filter(Reporter.intensity.2 != 0)
+
   if(plex == 14){
     ri.index<-which(colnames(sc.data)%in%paste0("Reporter.intensity.",2:18))
   }
-  if(plex == 24){
-    ri.index<-which(colnames(sc.data)%in%paste0("Reporter.intensity.",2:27))
+  if(plex == 29){
+    ri.index<-which(colnames(sc.data)%in%paste0("Reporter.intensity.",2:32))
   }
 
 
@@ -59,8 +61,8 @@ TMT_Reference_channel_norm <- function(QQC){
   if(plex == 14){
     sc.data <- sc.data[,c('seqcharge','Leading.razor.protein','Raw.file','Well','plate',paste0("Reporter.intensity.",5:18))]
   }
-  if(plex == 24){
-    sc.data <- sc.data[,c('seqcharge','Leading.razor.protein','Raw.file','Well','plate',paste0("Reporter.intensity.",4:27))]
+  if(plex == 29){
+    sc.data <- sc.data[,c('seqcharge','Leading.razor.protein','Raw.file','Well','plate',paste0("Reporter.intensity.",4:32))]
   }
 
   sc.data <- data.table::melt(sc.data, id = c('seqcharge','Leading.razor.protein','Raw.file','Well','plate'))
@@ -68,8 +70,8 @@ TMT_Reference_channel_norm <- function(QQC){
   if(plex == 14){
     sc.data <- sc.data[sc.data$value < 2.5,]
   }
-  if(plex == 24){
-    sc.data <- sc.data[sc.data$value < 10,]
+  if(plex == 29){
+    #sc.data <- sc.data[sc.data$value < 10,]
   }
 
   sc.data$ID <- paste0(sc.data$Well,sc.data$plate,sc.data$variable)
@@ -78,7 +80,7 @@ TMT_Reference_channel_norm <- function(QQC){
 
 
   # Add in 0 peptides for negative controls that were totally filtered out
-  sc.data[sc.data==0] <- NA
+  #sc.data[sc.data==0] <- NA
 
   sc.data <- as.data.frame(sc.data)
 
@@ -405,6 +407,28 @@ KNN_impute<-function(QQC, k = 3){
 
 }
 
+
+
+MinValue_impute <- function(QQC){
+  prot_dat <- QQC@matricies@protein
+
+  for(i in 1:nrow(prot_dat)){
+    prot_vect <- prot_dat[i,]
+    prot_vect[is.na(prot_vect) == T] <- min(prot_vect,na.rm = T)
+    prot_dat[i,] <- prot_vect
+
+  }
+
+
+  QQC@matricies@protein.imputed <- (prot_dat)
+
+  return(QQC)
+
+
+}
+
+
+
 #' Add two numbers.
 #'
 #' This function takes two numeric inputs and returns their sum.
@@ -473,6 +497,25 @@ CollapseToProtein <- function(QQC, opt, norm = 'ref'){
   sc.data <- QQC@matricies@peptide
 
 
+  ## Store absolute abundances
+  Abs_peptide_data <- as.data.table(cbind(QQC@matricies@peptide_protein_map,sc.data))
+  Abs_peptide_data <- data.table::melt(Abs_peptide_data,id.vars = c('Protein','seqcharge'))
+  Abs_peptide_data$seqcharge <- NULL
+  Abs_peptide_data <- Abs_peptide_data[, lapply(.SD, median,na.rm = TRUE), by = c('Protein','variable')]
+
+  # Create Protein x Cell matrix
+
+  Abs_peptide_data <- data.table::dcast(Abs_peptide_data, Protein ~ variable, value.var = 'value')
+
+  Abs_peptide_data <- as.data.frame(Abs_peptide_data)
+  rownames(Abs_peptide_data) <- Abs_peptide_data$Protein
+  Abs_peptide_data$Protein <- NULL
+
+
+
+  QQC@matricies@protein_abs <- as.matrix(Abs_peptide_data)
+
+
   # This function colapses peptide level data to the protein level
   # There are different ways to collapse peptides mapping from the same
   # protein to a single data point. The simplest way is to take the median
@@ -482,27 +525,43 @@ CollapseToProtein <- function(QQC, opt, norm = 'ref'){
   if(opt == 1){
 
     # Remove peptide protein name columns
-    Normalize_peptide_data <- as.matrix(sc.data)
-
-    # Normalize peptide data for cell size and then to relative abundances and log transform
-    if(norm == 'std'){
-      Normalize_peptide_data <- normalize(Normalize_peptide_data,log = T)
-    }
-    if(norm == 'ref'){
-      Normalize_peptide_data <- Normalize_reference_vector(Normalize_peptide_data,log = T)
-    }
+    #Normalize_peptide_data <- as.matrix(sc.data)
+    #
+    # # Normalize peptide data for cell size and then to relative abundances and log transform
+    # if(norm == 'std'){
+    #   Normalize_peptide_data <- normalize(Normalize_peptide_data,log = T)
+    # }
+    # if(norm == 'ref'){
+    #   Normalize_peptide_data <- Normalize_reference_vector(Normalize_peptide_data,log = T)
+    # }
 
 
 
     # Remove unwanted values
-    Normalize_peptide_data[Normalize_peptide_data == Inf] <- NA
-    Normalize_peptide_data[Normalize_peptide_data == -Inf] <- NA
+    #Normalize_peptide_data[Normalize_peptide_data == Inf] <- NA
+    #Normalize_peptide_data[Normalize_peptide_data == -Inf] <- NA
+
+    if(QQC@ms_type == 'DDA'){
+
+      Normalize_peptide_data <- Normalize_reference_vector(sc.data,log = T)
+      QQC@matricies@peptide <-  Normalize_peptide_data
+
+    }
+
+    if(QQC@ms_type != 'DDA'){
+
+      QQC <- LC_BatchCorrect(QQC)
+      Normalize_peptide_data <- QQC@matricies@peptide
+
+    }
+
+
 
     #Re-Join data
     Normalize_peptide_data <- as.data.table(cbind(QQC@matricies@peptide_protein_map,Normalize_peptide_data))
 
     # Remove peptides observed less than 10 times
-    Normalize_peptide_data <- Normalize_peptide_data[rowSums(is.na(Normalize_peptide_data)==F) > 9,]
+    Normalize_peptide_data <- Normalize_peptide_data[rowSums(is.na(Normalize_peptide_data)==F) > 3,]
 
 
     # Collapse peptide levels to median protein level, first melt, then collapse then expand back out
@@ -626,7 +685,6 @@ BatchCorrect <- function(QQC, labels = T, run = T, batch = F, norm = 'ref'){
 
 
 
-
   # Perform batch corrections, possible sources label bias, Every LC/MS runs or groups of LC/MS runs
   #sc.batch_cor <- ComBat(protein_mat_imputed, batch=factor(batch_label$label))
 
@@ -672,6 +730,88 @@ BatchCorrect <- function(QQC, labels = T, run = T, batch = F, norm = 'ref'){
 
 
 
+LC_BatchCorrect <- function(QQC){
+
+  pep_norm <- QQC@matricies@peptide
+  pep_norm[pep_norm==0] <- NA
+
+  pep_norm <- QuantQC::Normalize_reference_vector(pep_norm,log = T)
+
+  order_vect <- QQC@meta.data %>% filter(ID %in% colnames(QQC@matricies@peptide))
+
+  if(sum(order_vect$ID == colnames(pep_norm)) != ncol(pep_norm)){
+    return('something went wrong')
+  }
+
+  for(i in 1:nrow(pep_norm)){
+
+    set_df <- floor(sum(is.na(pep_norm[i,])==F)/11)
+    if(set_df > 20){
+      set_df <- 20
+    }
+    if(set_df == 0){
+      set_df <- 2
+    }
+    if(set_df == 1){
+      set_df <- 2
+    }
+
+    if(sum(is.na(pep_norm[i,])==F) > 29){
+
+
+      df_spline <- as.data.frame(order_vect$Order)
+      colnames(df_spline) <- 'order'
+      df_spline$data <- pep_norm[i,]
+      df_spline$holder <- 1:ncol(pep_norm)
+      df_spline <- df_spline %>% filter(is.na(data)==F)
+
+      if(QQC@ms_type == 'DDA'){
+        set_df <- length(unique(df_spline$order))
+        if(set_df > 20){
+          set_df <- 20
+        }
+        if(set_df == 3){
+          df_spline$order[1] <- df_spline$order[1] +.001
+        }
+
+
+      }
+
+
+
+      smooth = stats::smooth.spline(df_spline$order,df_spline$data,df = set_df)
+      predicted_y <- predict(smooth,  df_spline$order)
+
+      RSS <- sum((df_spline$data - predicted_y$y)^2)
+
+      # Calculate total sum of squares (TSS)
+      TSS <- sum((df_spline$data - mean(predicted_y$y))^2)
+
+      # Calculate R-squared (R²)
+      R_squared <- 1 - (RSS / TSS)
+
+      if(R_squared > .1){
+
+        x = predicted_y$x
+        y = predicted_y$y
+        df <- as.data.frame(cbind(x,y))
+        df <- df[order(df$x),]
+
+        df_spline <- df_spline[order(df_spline$order),]
+        df_spline$data = df_spline$data-df$y
+
+        pep_norm[i,df_spline$holder] <- df_spline$data
+
+      }
+    }
+
+  }
+
+  QQC@matricies@peptide <- pep_norm
+
+  return(QQC)
+
+}
 
 
 

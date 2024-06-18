@@ -4,7 +4,7 @@
 \alias{EvaluateNegativeControls}
 \title{Add two numbers.}
 \usage{
-EvaluateNegativeControls(QQC, CV_thresh)
+EvaluateNegativeControls(QQC)
 }
 \arguments{
 \item{x}{A numeric value.}

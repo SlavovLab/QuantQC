@@ -4,7 +4,7 @@
 \alias{DIANN_to_QQC}
 \title{Add two numbers.}
 \usage{
-DIANN_to_QQC(path, linker_path, plex, carrier = F)
+DIANN_to_QQC(data_path, linker_path, plex, carrier = F)
 }
 \arguments{
 \item{x}{A numeric value.}

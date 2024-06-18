@@ -10,7 +10,7 @@
 #' @examples
 #' add_numbers(2, 3)
 #' @export
-EvaluateNegativeControls <- function(QQC,CV_thresh){
+EvaluateNegativeControls <- function(QQC){
 
   if(nrow(QQC@meta.data)==0){
     return("Must map sample identites to data first")
@@ -18,7 +18,7 @@ EvaluateNegativeControls <- function(QQC,CV_thresh){
 
 
   if(QQC@ms_type == 'DDA'){
-    QQC <- EvaluateNegativeControls_DDA(QQC,CV_thresh)
+    QQC <- EvaluateNegativeControls_DDA(QQC)
   }
 
   if(QQC@ms_type == 'DIA' | QQC@ms_type ==  'DIA_C'){
@@ -34,7 +34,7 @@ EvaluateNegativeControls <- function(QQC,CV_thresh){
 
 
 
-CVs <- function(QQC,thresh){
+CVs <- function(QQC){
   cell_id <- QQC@meta.data
   # Normalize peptide data
   mat_norm <- Normalize_reference_vector(QQC@matricies@peptide)
@@ -92,7 +92,6 @@ CVs <- function(QQC,thresh){
 
 
 Count_peptides_per_cell <- function(sc.data,cellenONE_meta,good_cells = NULL){
-
 
 
 
@@ -181,16 +180,16 @@ Count_peptides_per_cell <- function(sc.data,cellenONE_meta,good_cells = NULL){
 
 
 
-EvaluateNegativeControls_DDA <- function(QQC,CV_thresh){
-
+EvaluateNegativeControls_DDA <- function(QQC){
 
   # Compute CVs of cells and negative controls, function outputs CV plot and list of cells with CVs
-  CVm <- CVs(QQC,CV_thresh)
+  CVm <- CVs(QQC)
 
 
   # Get IDs of cells with median protein CVs (good_cells is a df with cell ID and CV)
-  good_cells <- CVm %>% filter(cvq < CV_thresh)
+  good_cells <- CVm %>% filter(cvq < .9)
 
+  good_cells <- good_cells %>% filter(value != 'neg')
 
   if(length(good_cells) < 3){
 

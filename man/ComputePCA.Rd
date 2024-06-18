@@ -4,7 +4,7 @@
 \alias{ComputePCA}
 \title{Computes PCA}
 \usage{
-ComputePCA(QQC)
+ComputePCA(QQC, imputed = T)
 }
 \arguments{
 \item{QQC}{a QuantQC object}

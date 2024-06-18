@@ -93,6 +93,7 @@ Gen_Tlist_DIANN <- function(DIA,start_time){
   return(FinalDF)
 }
 
+
 reformat <- function(FinalDF,scout){
   scout$seqcharge <- paste0(scout$Sequence, scout$Charge)
   scout <- scout %>% filter(PEP < .04)

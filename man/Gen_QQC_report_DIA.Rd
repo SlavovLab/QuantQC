@@ -10,7 +10,9 @@ Gen_QQC_report_DIA(
   isolation,
   prot_vis_umap = NULL,
   output_path = "output_report.html",
-  ChQ = 0.1
+  ChQ = 0.1,
+  plex_exp = 3,
+  carrier_used = F
 )
 }
 \arguments{

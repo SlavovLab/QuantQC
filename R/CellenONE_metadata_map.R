@@ -66,6 +66,7 @@ link_cellenONE_Raw <- function(QQC,cells_file){
   linker <- QQC@meta.data
 
 
+
   if(QQC@ms_type == 'DDA'){
     cellenOne_data <- analyzeCellenONE_TMT(cells_file,QQC@misc[['plex']])
   }
@@ -79,11 +80,21 @@ link_cellenONE_Raw <- function(QQC,cells_file){
   cellID <- as.data.frame(cellID)
   colnames(cellID) <- 'ID'
 
-  cellenOne_data_small <- cellenOne_data %>% dplyr::select(any_of(c('ID','diameter','sample','label','injectWell','plate')))
-  cellenOne_data_small <- as.data.frame(cellenOne_data_small)
+  if(sum(colnames(cellenOne_data)=='Intensity') == 0){
+    cellenOne_data_small <- cellenOne_data %>% dplyr::select(any_of(c('ID','diameter','sample','label','injectWell','plate')))
+    cellenOne_data_small <- as.data.frame(cellenOne_data_small)
+  }
+  if(sum(colnames(cellenOne_data)=='Intensity') == 1){
+    cellenOne_data_small <- cellenOne_data %>% dplyr::select(any_of(c('ID','diameter','sample','label','injectWell','plate','Intensity','Stain_Diameter')))
+    cellenOne_data_small <- as.data.frame(cellenOne_data_small)
+  }
+
+  #cellenOne_data_small <- cellenOne_data_small %>% filter(injectWell %in%  QQC@raw_data$Well)
+  #cellenOne_data_small <- cellenOne_data_small %>% filter(plate %in%  QQC@raw_data$plate)
 
 
-  cellID <- cellID %>% left_join(cellenOne_data_small,by = c('ID'))
+
+  cellID <- cellID %>% dplyr::left_join(cellenOne_data_small,by = c('ID'))
 
   cellID$sample[is.na(cellID$sample)==T] <- 'neg'
 
@@ -125,6 +136,7 @@ analyzeCellenONE_TMT <- function(cells_file,plex){
 
   cells_file <- df
 
+
   #file_paths
   if(plex == 14){
     #File paths to pickup/label files
@@ -134,16 +146,32 @@ analyzeCellenONE_TMT <- function(cells_file,plex){
     pickupPath1 <-  system.file("extdata", "14plex_files/Pickup_mock.fld", package = "QuantQC")
 
   }
-  if(plex == 24){
+  if(plex == 29){
 
-    # 3plex
-    labelPath <- system.file("extdata", "24plex_files/Labels.fld", package = "QuantQC")
-    pickupPath1 <-  system.file("extdata", "24plex_files/Pickup_mock.fld", package = "QuantQC")
+    # 29plex
+    labelPath <- system.file("extdata", "29plex_files/Labels.fld", package = "QuantQC")
+    pickupPath1 <-  system.file("extdata", "29plex_files/Pickup_mock.fld", package = "QuantQC")
   }
 
 
   cells_file[grepl("Transmission",cells_file$X),]$X <- NA
   cells_file <- cells_file %>% fill(2:7, .direction = "up") %>% drop_na(XPos)
+
+  if(sum(cells_file$X == 'Blue') > 0){
+    cells_file[grepl("Blue",cells_file$X),]$X <- NA
+    cells_file <- cells_file %>% filter(is.na(X) == F)
+  }
+  store <- F
+  if(sum(cells_file$X == 'Green') > 0){
+    store <- T
+    get_green <- seq(2, nrow(cells_file), by = 2)
+    green <- cells_file[get_green,]
+    cells_file[grepl("Green",cells_file$X),]$X <- NA
+    cells_file <- cells_file %>% filter(is.na(X) == F)
+  }
+
+
+
 
   #cells_file1 <- cells_file %>% filter(XPos > 50)
   #cells_file1$XPos <- cells_file1$XPos + 1
@@ -216,6 +244,11 @@ analyzeCellenONE_TMT <- function(cells_file,plex){
 
   label$yPos <- as.numeric(label$yPos)
   label$xPos <- as.numeric(label$xPos)
+  label$well[label$well == '1H1,'] <- '1G25,'
+  label$well[label$well == '1H2,'] <- '1G26,'
+  label$well[label$well == '1H3,'] <- '1G27,'
+  label$well[label$well == '1H4,'] <- '1G28,'
+  label$well[label$well == '1H5,'] <- '1G29,'
   label$well <- substring(label$well, 3)
   label$well <- as.numeric(gsub(",","",label$well))
   matchTMTSCP <- paste0("TMT", 1:length(unique(label$well)))
@@ -270,9 +303,11 @@ analyzeCellenONE_TMT <- function(cells_file,plex){
   isoLab_final <- isoLab_bound %>% left_join(pickup, by = 'xyft')
   wellCount <- isoLab_final %>% group_by(well.y) %>% dplyr::summarize(count=n())
 
+  isoLab_final$ImageFile <- str_sub(isoLab_final$ImageFile, end = -2)
+  isoLab_final$ImageFile <- str_sub(isoLab_final$ImageFile,12)
 
   ### Clean up to yield final dataframe
-  cellenOne_data <- data.frame(sample = isoLab_final$condition, isoTime = isoLab_final$Time, diameter = isoLab_final$Diameter, elongation = isoLab_final$Elongation, slide = isoLab_final$Target, field = isoLab_final$Field, dropXPos = isoLab_final$XPos, dropYPos = isoLab_final$YPos, label = isoLab_final$well.x, pickupXPos = isoLab_final$pickupX, pickupYPos = isoLab_final$pickupY, injectWell = isoLab_final$well.y)
+  cellenOne_data <- data.frame(sample = isoLab_final$condition, isoTime = isoLab_final$Time, diameter = isoLab_final$Diameter, elongation = isoLab_final$Elongation, slide = isoLab_final$Target, field = isoLab_final$Field, dropXPos = isoLab_final$XPos, dropYPos = isoLab_final$YPos, label = isoLab_final$well.x, pickupXPos = isoLab_final$pickupX, pickupYPos = isoLab_final$pickupY, injectWell = isoLab_final$well.y, picture = isoLab_final$ImageFile)
 
 
   ##*sigh* not done yet
@@ -293,20 +328,22 @@ analyzeCellenONE_TMT <- function(cells_file,plex){
     cellenOne_data$label <- paste0('Reporter.intensity.' , (as.numeric(cellenOne_data$label) + 4))
 
   }
-  if(plex == 24){
+  if(plex == 29){
 
-    labs_map <- c('Reporter.intensity.4', 'Reporter.intensity.5','Reporter.intensity.7',
-              'Reporter.intensity.6', 'Reporter.intensity.8','Reporter.intensity.10',
-              'Reporter.intensity.9', 'Reporter.intensity.11','Reporter.intensity.12',
+    labs_map <- c('Reporter.intensity.4', 'Reporter.intensity.5','Reporter.intensity.6',
+              'Reporter.intensity.7', 'Reporter.intensity.8','Reporter.intensity.9',
+              'Reporter.intensity.10', 'Reporter.intensity.11','Reporter.intensity.12',
               'Reporter.intensity.13','Reporter.intensity.14','Reporter.intensity.15',
               'Reporter.intensity.16','Reporter.intensity.17','Reporter.intensity.18',
               'Reporter.intensity.19','Reporter.intensity.20','Reporter.intensity.21',
               'Reporter.intensity.22','Reporter.intensity.23','Reporter.intensity.24',
-              'Reporter.intensity.25','Reporter.intensity.26','Reporter.intensity.27')
+              'Reporter.intensity.25','Reporter.intensity.26','Reporter.intensity.27',
+              'Reporter.intensity.28','Reporter.intensity.29','Reporter.intensity.30',
+              'Reporter.intensity.31','Reporter.intensity.32')
 
     cellenOne_data$label <- as.numeric(cellenOne_data$label)
     cellenOne_data$label_new <- NA
-    for(i in 1:24){
+    for(i in 1:29){
       cellenOne_data$label_new[cellenOne_data$label == i] <- labs_map[i]
 
     }
@@ -326,7 +363,15 @@ analyzeCellenONE_TMT <- function(cells_file,plex){
   cellenOne_data$ID <- paste0(cellenOne_data$injectWell,cellenOne_data$plate,cellenOne_data$label)
 
 
+  if(store == T){
 
+    cellenOne_data$match_stain <- paste0('F',cellenOne_data$field,'X',cellenOne_data$dropXPos,'Y',cellenOne_data$dropYPos)
+    green$match_stain <- paste0('F',green$Field,'X',green$XPos,'Y',green$YPos)
+    green <- green %>% dplyr::select(match_stain,Intensity,Diameter)
+    colnames(green)[3] <- 'Stain_Diameter'
+    cellenOne_data <- cellenOne_data %>% left_join(green, by = c('match_stain'))
+
+  }
 
   return(cellenOne_data)
 
@@ -335,8 +380,6 @@ analyzeCellenONE_TMT <- function(cells_file,plex){
 
 
 analyzeCellenONE_mTRAQ <- function(cells_file,plex){
-  #plex = 3
-  #cells_file = all_cells
 
   for(i in 1:length(cells_file)){
     df1 <- read.delim(cells_file[[i]])
@@ -350,7 +393,10 @@ analyzeCellenONE_mTRAQ <- function(cells_file,plex){
 
   }
 
+  df <- df %>% filter(X != 'Green')
+  df <- df %>% filter(X != '0')
   cells_file <- df
+
 
   # Code to parse cellenONE files and map cell diameters, a mess and not too important,
   # dont feel obligeted to read
@@ -360,8 +406,8 @@ analyzeCellenONE_mTRAQ <- function(cells_file,plex){
 
     # 2plex
     labelPath <- system.file("extdata", "2plex_files/Labels.fld", package = "QuantQC")
-    pickupPath1 <- system.file("extdata", "2plex_files/Pickup_mock_1.fld", package = "QuantQC")
-    pickupPath2 <- system.file("extdata", "2plex_files/Pickup_mock_2.fld", package = "QuantQC")
+    pickupPath1 <- system.file("extdata", "2plex_files/Pickup_1_mock.fld", package = "QuantQC")
+    pickupPath2 <- system.file("extdata", "2plex_files/Pickup_2_mock.fld", package = "QuantQC")
 
   }
   if(plex == 3){
@@ -492,31 +538,13 @@ analyzeCellenONE_mTRAQ <- function(cells_file,plex){
   isoLab$pickupX <- NA
   isoLab$pickupY <- NA
 
-  #ann_123 <- ann(ref = as.matrix(unique(pickup[(-which(pickup$field == 4)) , c("xPos","yPos")])),  target = as.matrix(isoLab[(-which(isoLab$Field == 4)) , c("xPos","yPos")]), k=1)
-
   ann_ <- ann(ref = as.matrix(unique(pickup[, c("xPos","yPos")])),  target = as.matrix(isoLab[ , c("xPos","yPos")]), k=1)
 
-  #ann_4 <- ann(ref = as.matrix(unique(pickup[(which(pickup$field == 4)) , c("xPos","yPos")])),  target = as.matrix(isoLab[(which(isoLab$Field == 4)) , c("xPos","yPos")]), k=1)
-
-  #isoLab[(-which(isoLab$Field == 4)),]$ann <-  ann_123$knnIndexDist[,1]
-  #isoLab[(which(isoLab$Field == 4)),]$ann <-  ann_4$knnIndexDist[,1]
 
   isoLab$ann <-  ann_$knnIndexDist[,1]
 
 
-  ## split - combine
-  #isoLab_123 <- isoLab[-which(isoLab$Field == 4),]
-  #isoLab_4 <- isoLab[which(isoLab$Field == 4),]
-
   isoLab_new <- unique(pickup[, c("xPos","yPos")])
-  #notFieldFourPickUnique <- unique(pickup[-(which(pickup$field == 4)) , c("xPos","yPos")])
-  #fieldFourPickUnique <- unique(pickup[(which(pickup$field == 4)) , c("xPos","yPos")])
-
-  #isoLab_123$pickupX <- notFieldFourPickUnique[isoLab_123$ann,]$xPos
-  #isoLab_123$pickupY <- notFieldFourPickUnique[isoLab_123$ann,]$yPos
-
-  #isoLab_4$pickupX <- fieldFourPickUnique[isoLab_4$ann,]$xPos
-  #isoLab_4$pickupY <- fieldFourPickUnique[isoLab_4$ann,]$yPos
 
   isoLab$pickupX <- isoLab_new[isoLab$ann,]$xPos
   isoLab$pickupY <- isoLab_new[isoLab$ann,]$yPos
@@ -538,7 +566,8 @@ analyzeCellenONE_mTRAQ <- function(cells_file,plex){
 
 
   ### Clean up to yield final dataframe
-  cellenOne_data <- data.frame (sample = isoLab_final$condition, isoTime = isoLab_final$Time, diameter = isoLab_final$Diameter, elongation = isoLab_final$Elongation, slide = isoLab_final$Target, field = isoLab_final$Field, dropXPos = isoLab_final$XPos, dropYPos = isoLab_final$YPos, label = isoLab_final$well.x, pickupXPos = isoLab_final$pickupX, pickupYPos = isoLab_final$pickupY, injectWell = isoLab_final$well.y)
+  cellenOne_data <- data.frame (sample = isoLab_final$condition, isoTime = isoLab_final$Time, diameter = isoLab_final$Diameter, elongation = isoLab_final$Elongation, slide = isoLab_final$Target, field = isoLab_final$Field, dropXPos = isoLab_final$XPos, dropYPos = isoLab_final$YPos, label = isoLab_final$well.x, pickupXPos = isoLab_final$pickupX, pickupYPos = isoLab_final$pickupY, injectWell = isoLab_final$well.y, picture = isoLab_final$ImageFile)
+
 
 
   ##*sigh* not done yet
@@ -579,6 +608,7 @@ analyzeCellenONE_mTRAQ <- function(cells_file,plex){
 
   return(cellenOne_data)
 }
+
 
 
 
@@ -633,3 +663,4 @@ PlotSlideLayout_label <- function(QQC){
           legend.text = element_text(size = 20))
 
 }
+
