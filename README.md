@@ -1,4 +1,4 @@
-# **QuantQC: nPOP sample preparation evaluation pipline**
+# **QuantQC: nPOP sample preparation and evaluation pipline**
 
 
 
