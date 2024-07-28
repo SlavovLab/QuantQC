@@ -1,6 +1,6 @@
 # **QuantQC: nPOP sample preparation and evaluation pipline**
 
-
+**QuantQC website: [scp.slavovlab.net/QuantQC](https://scp.slavovlab.net/QuantQC)**
 
 * [nPOP sample preparation Website](https://scp.slavovlab.net/nPOP) &nbsp; | &nbsp; [Download data from origninal publication](https://scp.slavovlab.net/Leduc_et_al_2022) | &nbsp; [Download data from protocol](https://scp.slavovlab.net/Leduc_et_al_2022)
 
