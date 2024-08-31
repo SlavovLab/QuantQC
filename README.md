@@ -3,6 +3,7 @@
 
 ## Resources:
 * **QuantQC website: [scp.slavovlab.net/QuantQC](https://scp.slavovlab.net/QuantQC)**
+* [Leduc et al., 2024](https://www.nature.com/articles/s41596-024-01033-8), *Nature Protocols*, doi: [0.1038/s41596-024-01033-8](https://doi.org/10.1038/s41596-024-01033-8)
 
 * [nPOP sample preparation Website](https://scp.slavovlab.net/nPOP) &nbsp; | &nbsp; [Download data from origninal publication](https://scp.slavovlab.net/Leduc_et_al_2022) | &nbsp; [Download data from protocol](https://scp.slavovlab.net/Leduc_et_al_2022)
 
@@ -52,7 +53,7 @@ library(QuantQC)
 QuantQC is an R package
 
 -->
-The manuscript is freely available on bioRxiv: [Leduc et al., 2023](https://www.biorxiv.org/content/10.1101/2021.11.03.467007v2).
+The manuscript is freely available on bioRxiv: [Leduc et al., 2023](https://www.biorxiv.org/content/10.1101/2021.11.03.467007v2) and at *Nature Protocols*:  [Leduc et al., 2024](https://www.nature.com/articles/s41596-024-01033-8)
 
 For more information, contact [Slavov Laboratory](https://slavovlab.net) or directly [Andrew Leduc](https://coe.northeastern.edu/people/slavov-nikolai/)
 
