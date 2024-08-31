@@ -3,13 +3,11 @@
 
 ## Resources:
 * **QuantQC website: [scp.slavovlab.net/QuantQC](https://scp.slavovlab.net/QuantQC)**
-* [Leduc et al., 2024](https://www.nature.com/articles/s41596-024-01033-8), *Nature Protocols*, doi: [0.1038/s41596-024-01033-8](https://doi.org/10.1038/s41596-024-01033-8)
+* [Leduc et al., 2024](https://www.nature.com/articles/s41596-024-01033-8), *Nature Protocols*, doi: [0.1038/s41596-024-01033-8](https://doi.org/10.1038/s41596-024-01033-8), [Preprint](https://scp.slavovlab.net/Leduc_et_al_2022)
 
 * [nPOP sample preparation Website](https://scp.slavovlab.net/nPOP) &nbsp; | &nbsp; [Download data from origninal publication](https://scp.slavovlab.net/Leduc_et_al_2022) | &nbsp; [Download data from protocol](https://scp.slavovlab.net/Leduc_et_al_2022)
 
-* [Preprint of Protocol](https://scp.slavovlab.net/Leduc_et_al_2022)
-
-* [Preprint Original Article](https://www.biorxiv.org/content/10.1101/2021.11.03.467007v2) &nbsp; | &nbsp; [*Genome Biology* Article](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-022-02817-5)
+* Article reporting the development of nPOP: [Leduc et al., 2022](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-022-02817-5), *Genome Biology*,   [Preprint](https://www.biorxiv.org/content/10.1101/2021.11.03.467007v2)
 
 
 &nbsp;
