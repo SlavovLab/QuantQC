@@ -695,7 +695,7 @@ BatchCorrect <- function(QQC, labels = T, run = T, batch = F, norm = 'ref'){
     sc.batch_cor <- limma::removeBatchEffect(protein_mat_imputed,batch = batch_label$label, batch2 = batch_label$LCMS_Batch)
   }
   if(labels == T & batch == F & run == F){
-    sc.batch_cor <- sva::ComBat(protein_mat_imputed,batch = batch_label$label)
+    sc.batch_cor <- limma::removeBatchEffect(protein_mat_imputed,batch = batch_label$label)
   }
   if(labels == F & batch == T & run == F){
     sc.batch_cor <- limma::removeBatchEffect(protein_mat_imputed,batch = batch_label$LCMS_Batch)
