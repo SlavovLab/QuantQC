@@ -11,6 +11,8 @@ PepCorMini <- function(peptide_data,peptide_protein_map){
   prot_list <- peptide_protein_map$Protein
 
 
+  peptide_data <- Normalize_reference_vector_log(log2(peptide_data))
+
   count <- 0
 
   # Loop over each protein, calculate correlations between peptides mapping to a protein
@@ -175,7 +177,8 @@ Miceotope_cellXpeptide <- function(QQC,TQVal = 1, chQVal = 1, t = 5){
   #Prot_pep_mapK <- Prot_pep_mapK[sect_row,]
   mice_R <- mice_R[,sect_col]
 
-
+  mice_K_H_raw = mice_K_H
+  mice_K_L_raw = mice_K_L
 
   mice_K_all <- mice_K_H+mice_K_L
 
@@ -188,20 +191,19 @@ Miceotope_cellXpeptide <- function(QQC,TQVal = 1, chQVal = 1, t = 5){
 
   mice_K_H_ov_L <- mice_K_H/mice_K_L
 
-  mice_alpha <- -log(mice_K_L/(mice_K_H+mice_K_L))/t
+  mice_alpha <- log(mice_K_H/mice_K_L+1)/t
 
-  #mice_K_all <- QuantQC::normalize(mice_K_all)
-
-  #mice_K_H <- mice_K_H/(mice_K_H+mice_K_L)
-  #mice_K_L <- 1 - mice_K_H
-  #mice_K_H <- mice_K_all*mice_K_H
-  #mice_K_L <- mice_K_all*mice_K_L
+  mice_K_all <- QuantQC::normalize(mice_K_all)
+  mice_K_H <- mice_K_H/(mice_K_H+mice_K_L)
+  mice_K_L <- 1 - mice_K_H
+  mice_K_H <- mice_K_all*mice_K_H
+  mice_K_L <- mice_K_all*mice_K_L
 
   mice_beta <- mice_K_H*mice_alpha/(1-exp(-mice_alpha*t)) # Size adjusted translation rate
 
   mice_beta <- QuantQC::normalize(mice_beta)
 
-  miceotope_matricies <- new('matricies_Miceotopes',HovL_pep = as.matrix(mice_K_H_ov_L),Beta_pep = as.matrix(mice_beta),Alpha_pep = as.matrix(mice_alpha), peptide_protein_map=Prot_pep_mapK)
+  miceotope_matricies <- new('matricies_Miceotopes',Raw_H = as.matrix(mice_K_H_raw),Raw_L = as.matrix(mice_K_L_raw), HovL_pep = as.matrix(mice_K_H_ov_L),Beta_pep = as.matrix(mice_beta),Alpha_pep = as.matrix(mice_alpha), peptide_protein_map=Prot_pep_mapK)
 
 
   QQC@miceotopes <- miceotope_matricies

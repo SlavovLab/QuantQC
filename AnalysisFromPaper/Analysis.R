@@ -134,7 +134,7 @@ AppNote <- DIANN_to_QQC(data_path,linker_path, plex = 3, carrier = F)
 # Normalize single cell runs to reference channel,
 # filter out data points over twice reference
 # Generate turn long table format to Peptide X Cell matrix
-AppNote <- cellXpeptide(AppNote, TQVal = 1, chQVal = 1)
+AppNote <- cellXpeptide(AppNote, TQVal = 1, chQVal = .05)
 
 
 ## Mapping cellenONE meta data to raw data

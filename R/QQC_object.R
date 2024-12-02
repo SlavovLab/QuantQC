@@ -59,6 +59,8 @@ matricies_Miceotopes <- setClass(
   Class = 'matricies_Miceotopes',
   slots = c(
 
+    Raw_H = 'matrix',
+    Raw_L = 'matrix',
     HovL_pep = 'matrix',
     Beta_pep = 'matrix',
     Alpha_pep = 'matrix',

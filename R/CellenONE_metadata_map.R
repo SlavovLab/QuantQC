@@ -284,9 +284,10 @@ analyzeCellenONE_TMT <- function(cells_file,plex){
   isoLab$pickupX <- NA
   isoLab$pickupY <- NA
 
-  ann_ <- ann(ref = as.matrix(unique(pickup[, c("xPos","yPos")])),  target = as.matrix(isoLab[ , c("xPos","yPos")]), k=1)
+  ann_ <- yaImpute::ann(ref = as.matrix(unique(pickup[, c("xPos","yPos")])),  target = as.matrix(isoLab[ , c("xPos","yPos")]), k=1)
   isoLab$ann <-  ann_$knnIndexDist[,1]
   isoLab_new <- unique(pickup[, c("xPos","yPos")])
+
 
 
   isoLab$pickupX <- isoLab_new[isoLab$ann,]$xPos
