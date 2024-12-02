@@ -26,7 +26,7 @@ There are two required packages that are not installed by default.
 To install the QuantQC package, run (you may need to install devtools first):
 
 ```
-devtools::install_github("https://github.com/Andrew-Leduc/QuantQC")
+devtools::install_github("https://github.com/SlavovLab/QuantQC")
 library(QuantQC)
 ```
 
