@@ -22,7 +22,6 @@ Imports:
   psych (>= 2.4.6.26),
   reshape2 (>= 1.4.4),
   ggplot2 (>= 3.3.5),
-  ggpubr (>= 0.4.0),
   patchwork (>= 1.1.0),
   matrixStats (>= 1.4.1),
   gghighlight (>= 0.4.1),
