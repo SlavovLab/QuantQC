@@ -18,7 +18,7 @@ Imports:
   seqinr (>= 4.2.36),
   dplyr (>= 1.1.4),
   stringr (>= 1.4.0),
-  psych (>= 2.4.6.26),
+  psych (>= 2.4.5),
   reshape2 (>= 1.4.4),
   ggplot2 (>= 3.3.5),
   patchwork (>= 1.1.0),
