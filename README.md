@@ -18,10 +18,11 @@
 
 This application has been tested on R >= 3.5.0, OSX 10.14 / Windows 7/8/10. R can be downloaded from the main [R Project page](https://www.r-project.org/) or downloaded with the [RStudio Application](https://www.rstudio.com/products/rstudio/download/).
 
-There are two required packages that are not installed by default.
+There are three packages that are not installed by default. They are not needed for all tasks, it will let you know if you need them if you'd rather not install.
 
   1. [Seurat](https://satijalab.org/seurat/articles/install.html)
-  2. [DIANN r package](https://github.com/vdemichev/diann-rpackage)
+  2. [XGboost](https://xgboost.readthedocs.io/en/latest/R-package/index.html)
+  3. [DIANN r package](https://github.com/vdemichev/diann-rpackage)
 
 To install the QuantQC package, run (you may need to install devtools first):
 
