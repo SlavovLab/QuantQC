@@ -114,7 +114,7 @@ TMT_Reference_channel_norm <- function(QQC){
 #' @examples
 #' add_numbers(2, 3)
 #' @export
-cellXpeptide_DIA <- function(QQC,TQVal, chQVal){
+cellXpeptide_DIA <- function(QQC,TQVal, chQVal, carrier_norm = T){
 
   Raw_data <- QQC@raw_data
   plex <- QQC@misc[['plex']]
@@ -122,7 +122,7 @@ cellXpeptide_DIA <- function(QQC,TQVal, chQVal){
 
 
 
-  if(plex == 2 & type == 'DIA_C'){
+  if(plex == 2 & type == 'DIA_C' ){
     plex_used <- c(0,4,8)
 
   }else if(plex == 2 & type == 'DIA'){
@@ -131,6 +131,10 @@ cellXpeptide_DIA <- function(QQC,TQVal, chQVal){
     plex_used <- c(0,4,8)
   }else{
     return('plex not valid')
+  }
+
+  if(carrier_norm == F){
+    plex_used <- c(0,4)
   }
 
 
@@ -151,7 +155,8 @@ cellXpeptide_DIA <- function(QQC,TQVal, chQVal){
 
   # Normalize data by carrier
   ## This code also removes all sets where a single cell is larger in mean intensity than the carrier
-  if(type == 'DIA_C'){
+  if(type == 'DIA_C' & carrier_norm==T){
+
 
     Raw_data_lim.d_filt <- DIA_carrier_norm(Raw_data_lim.d_filt,8,plex_used)
 
@@ -492,7 +497,7 @@ Normalize_reference_vector_log <- function(dat){
 #' @examples
 #' add_numbers(2, 3)
 #' @export
-CollapseToProtein <- function(QQC, opt, norm = 'ref'){
+CollapseToProtein <- function(QQC, opt, LC_correct = F ,norm = 'ref'){
 
   sc.data <- QQC@matricies@peptide
 
@@ -549,8 +554,9 @@ CollapseToProtein <- function(QQC, opt, norm = 'ref'){
     }
 
     if(QQC@ms_type != 'DDA'){
-
-      QQC <- LC_BatchCorrect(QQC)
+      if(LC_correct ==T){
+        QQC <- LC_BatchCorrect(QQC)
+      }
       Normalize_peptide_data <- QQC@matricies@peptide
 
     }
@@ -743,6 +749,7 @@ LC_BatchCorrect <- function(QQC){
     return('something went wrong')
   }
 
+  Rsq_save <- c()
   for(i in 1:nrow(pep_norm)){
 
     set_df <- floor(sum(is.na(pep_norm[i,])==F)/11)
@@ -790,6 +797,7 @@ LC_BatchCorrect <- function(QQC){
       # Calculate R-squared (R²)
       R_squared <- 1 - (RSS / TSS)
 
+      Rsq_save <- c(Rsq_save,R_squared)
       if(R_squared > .1){
 
         x = predicted_y$x
