@@ -143,39 +143,44 @@ FeaturePCA <- function(QQC, prot = NA, imputed = T){
 #' ComputeUMAP(TestSamples)
 #' @export
 ComputeUMAP <- function(QQC){
-  protein_Data <- QQC@matricies@protein.imputed
-  scx <- QQC@reductions[['PCA']]
+  if (requireNamespace("Seurat", quietly = TRUE)) {
+    protein_Data <- QQC@matricies@protein.imputed
+    scx <- QQC@reductions[['PCA']]
 
-  prot_umap <- CreateSeuratObject(counts = protein_Data, project = "prot_mat")
-  prot_umap <- NormalizeData(prot_umap, normalization.method = "LogNormalize", scale.factor = 10000)
-  prot_umap@assays$RNA@layers$data <- protein_Data
+    prot_umap <- CreateSeuratObject(counts = protein_Data, project = "prot_mat")
+    prot_umap <- NormalizeData(prot_umap, normalization.method = "LogNormalize", scale.factor = 10000)
+    prot_umap@assays$RNA@layers$data <- protein_Data
 
-  all.genes <- rownames(protein_Data)
-  prot_umap <- ScaleData(prot_umap, features = all.genes)
-  prot_umap@assays$RNA@layers$data <- protein_Data
-  prot_umap <- Seurat::RunPCA(prot_umap, features = all.genes)
-  prot_umap <- FindNeighbors(prot_umap, dims = 1:6)
-  prot_umap <- FindClusters(prot_umap, resolution = 0.5)
-  prot_umap <- RunUMAP(prot_umap, dims = 1:6)
+    all.genes <- rownames(protein_Data)
+    prot_umap <- ScaleData(prot_umap, features = all.genes)
+    prot_umap@assays$RNA@layers$data <- protein_Data
+    prot_umap <- Seurat::RunPCA(prot_umap, features = all.genes)
+    prot_umap <- FindNeighbors(prot_umap, dims = 1:6)
+    prot_umap <- FindClusters(prot_umap, resolution = 0.5)
+    prot_umap <- RunUMAP(prot_umap, dims = 1:6)
 
-  um_plot <- as.data.frame(prot_umap@reductions[["umap"]]@cell.embeddings)
+    um_plot <- as.data.frame(prot_umap@reductions[["umap"]]@cell.embeddings)
 
-  um_plot$sample <- scx$sample
-  um_plot$cluster <- prot_umap@meta.data[["RNA_snn_res.0.5"]]
-  um_plot$lab <- scx$label
-  um_plot$prot_total <- scx$prot_total
-  um_plot$Order <- scx$Order
-  um_plot$diameter <- scx$diameter
-
-
+    um_plot$sample <- scx$sample
+    um_plot$cluster <- prot_umap@meta.data[["RNA_snn_res.0.5"]]
+    um_plot$lab <- scx$label
+    um_plot$prot_total <- scx$prot_total
+    um_plot$Order <- scx$Order
+    um_plot$diameter <- scx$diameter
 
 
-  # ggplot(um_plot, aes(x = UMAP_1,y = UMAP_2, color = cluster)) + geom_point(size = 3) + theme_classic()+
-  #   ggtitle('UMAP colored by Sample')
 
-  QQC@reductions[['UMAP']] <- um_plot
 
-  return(QQC)
+    # ggplot(um_plot, aes(x = UMAP_1,y = UMAP_2, color = cluster)) + geom_point(size = 3) + theme_classic()+
+    #   ggtitle('UMAP colored by Sample')
+
+    QQC@reductions[['UMAP']] <- um_plot
+
+    return(QQC)
+  } else {
+    stop("The 'Seurat' package is required to use this function.")
+  }
+
 }
 
 #' Computes PCA

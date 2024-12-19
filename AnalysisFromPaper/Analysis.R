@@ -89,7 +89,7 @@ library(QuantQC)
 ## Data files,  UPDATE FILE PATHS
 
 #searched SC data, find on massive repo
-data_path <- "/Users/andrewleduc/Library/CloudStorage/GoogleDrive-research@slavovlab.net/.shortcut-targets-by-id/1uQ4exoKlaZAGnOG1iCJPzYN3ooYYZB7g/MS/Users/appnote/Searched_DDM/report.tsv"
+data_path <- "/Users/andrewleduc/Desktop/app_note/report.tsv"
 
 
 # link raw file name to well plate, find in folder
@@ -130,6 +130,7 @@ Gen_QQC_report_DIA(data_path = data_path,
 #Generate nPOP object from raw data
 AppNote <- DIANN_to_QQC(data_path,linker_path, plex = 3, carrier = F)
 
+AppNote@raw_data
 
 # Normalize single cell runs to reference channel,
 # filter out data points over twice reference
@@ -168,7 +169,7 @@ PlotNegCtrl(AppNote)
 
 
 # filter bad cells based off above, put in log10 intensity
-AppNote <- FilterBadCells(AppNote, min_intens = 7.5)
+AppNote <- FilterBadCells(AppNote, min_intens = 7)
 
 
 
@@ -213,6 +214,8 @@ AppNote <- ComputePCA(AppNote)
 ## plot PCA options are "Run order" "Total protein" "Condition" "Label"
 PlotPCA(AppNote, by = "Run order")
 PlotPCA(AppNote, by = "Condition")
+PlotPCA(AppNote, by = "Total protein")
+PlotPCA(AppNote, by = "Label")
 
 ## also assigns louvain clusters
 AppNote <- ComputeUMAP(AppNote)
@@ -230,7 +233,7 @@ View(AppNote@reductions$UMAP)
 
 ## Color code umap by proteins
 
-# FeatureUMAP(AppNote, prot = 'Q02750', imputed = F)
+FeatureUMAP(AppNote, prot = 'P00918', imputed = F)
 
 
 convert <- Proc_fasta('/Users/andrewleduc/Library/CloudStorage/GoogleDrive-research@slavovlab.net/.shortcut-targets-by-id/1uQ4exoKlaZAGnOG1iCJPzYN3ooYYZB7g/MS/Users/LK/FASTA/swissprot_human_20211005.fasta')

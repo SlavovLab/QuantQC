@@ -362,3 +362,62 @@ Mice_DimPlot_turnover <-function(QQC, reuct = 'PCA', by = 'Total'){
 }
 
 
+objective_function <- function(alpha, L_measured, L0, a, b, t) {
+  L_predicted <- L_function(alpha, L0, a, b, t)
+  residuals <- L_predicted - (L_measured)
+  return(sum(residuals^2))
+}
+
+
+L_function <- function(alpha, L0, a, b, t) {
+  c = .5
+  beta = L0*alpha
+
+  Lt <- (a*beta*c - 2*alpha*beta*c + b*beta*c + alpha*beta*c*exp((-a + alpha)*t) - b*beta*c*exp((-a + alpha)*t) -
+           a*beta*c*exp((alpha - b)*t) + alpha*beta*c*exp((alpha - b)*t) - a*alpha*L0 + alpha^2*L0 + a*b*L0 - alpha*b*L0)/
+    ((-a + alpha)*(alpha - b)*exp(alpha*t))
+
+  return(Lt)
+}
+
+
+
+Recycle_adj <- function(L_mat, L0_mat,anno,recycle_params){
+
+
+
+  alpha_recycle_adj_mat <- matrix(data= NA,nrow = nrow(L_mat),ncol = ncol(L_mat))
+
+  colnames(alpha_recycle_adj_mat) <- colnames(L_mat)
+  rownames(alpha_recycle_adj_mat) <- rownames(L_mat)
+
+  #anno$Age[anno$Tissue == 'BM'] <- 'Old'
+
+  for (i in 1:ncol(L_mat)) {
+    print(i)
+    anno_hold <- anno %>% filter(Run == colnames(L_mat)[i])
+    recycle_params_hold <- recycle_params %>% filter(tissue_save == anno_hold$Tissue & age_save == anno_hold$Age)
+    t = anno_hold$Time
+
+    for (j in 1:nrow(L_mat)) {
+
+      # Get the current L and L0 values
+      L_measured <- (L_mat[j, i])
+      L0_value <- L0_mat[j, i]
+      if((is.na(L0_value) + is.na(L_measured)) == 0){
+        # Perform 1D optimization using "Brent" method
+        result <- optim(par = .3, fn = objective_function,
+                        L_measured = L_measured, L0 = L0_value, a = recycle_params_hold$a_save, b = recycle_params_hold$b_save, t = t,
+                        method = "L-BFGS-B", lower = 0, upper = 10) # Adjust the range for alpha as needed
+
+        # Store the optimal alpha in the result matrix
+        alpha_recycle_adj_mat[j, i] <- result$par
+      }
+    }
+  }
+
+  return(alpha_recycle_adj_mat)
+
+}
+
+

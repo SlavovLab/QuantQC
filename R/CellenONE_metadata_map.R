@@ -146,6 +146,14 @@ analyzeCellenONE_TMT <- function(cells_file,plex){
     pickupPath1 <-  system.file("extdata", "14plex_files/Pickup_mock.fld", package = "QuantQC")
 
   }
+  if(plex == 12){
+    #File paths to pickup/label files
+    # 2plex
+    labelPath <- system.file("extdata", "12plex_files/Labels.fld", package = "QuantQC")
+    pickupPath1 <-  system.file("extdata", "12plex_files/Pickup_mock.fld", package = "QuantQC")
+
+  }
+
   if(plex == 29){
 
     # 29plex
