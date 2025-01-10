@@ -26,6 +26,7 @@ link_manual_Raw <- function(QQC){
   cellenOne_data_small <- cellenOne_data %>% dplyr::select(any_of(c('ID','diameter','sample','label','injectWell','plate')))
   cellenOne_data_small <- as.data.frame(cellenOne_data_small)
 
+  cellenOne_data_small <- cellenOne_data_small %>% distinct(ID,.keep_all = T)
 
   cellID <- cellID %>% left_join(cellenOne_data_small,by = c('ID'))
 
