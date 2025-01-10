@@ -94,7 +94,8 @@ link_cellenONE_Raw <- function(QQC,cells_file){
   #cellenOne_data_small <- cellenOne_data_small %>% filter(plate %in%  QQC@raw_data$plate)
 
 
-
+  cellenOne_data_small <- cellenOne_data_small %>% distinct(ID,.keep_all = T)
+  
   cellID <- cellID %>% dplyr::left_join(cellenOne_data_small,by = c('ID'))
 
   cellID$sample[is.na(cellID$sample)==T] <- 'neg'
