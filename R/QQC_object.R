@@ -14,6 +14,7 @@ QQC <- setClass(
     run_order.statistics = 'list',
     pep.cor = 'list',
     neg_ctrl.info = 'data.frame',
+    LC_batch_deviations = 'list',
     reductions = 'list',
     misc = 'list',
 
@@ -93,6 +94,10 @@ MQ_to_QQC <- function(data_path,linker,plex ,PIF_in,PEP_in){
     RI_numb = 18
   }
   if(plex == 29){
+    RI_numb = 32
+  }
+
+  if(plex == 32){
     RI_numb = 32
   }
 

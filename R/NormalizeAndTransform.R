@@ -43,18 +43,23 @@ TMT_Reference_channel_norm <- function(QQC){
 
   sc.data <- QQC@raw_data
 
-  sc.data <- sc.data %>% filter(Reporter.intensity.2 != 0)
+  #sc.data <- sc.data %>% filter(Reporter.intensity.2 != 0)
 
   if(plex == 14){
     ri.index<-which(colnames(sc.data)%in%paste0("Reporter.intensity.",2:18))
+    sc.data[, ri.index] <- sc.data[, ri.index] / sc.data[, ri.index[1]]
   }
   if(plex == 29){
     ri.index<-which(colnames(sc.data)%in%paste0("Reporter.intensity.",2:32))
+    sc.data[, ri.index] <- sc.data[, ri.index] / sc.data[, ri.index[1]]
+  }
+  if(plex == 32){
+    ri.index<-which(colnames(sc.data)%in%paste0("Reporter.intensity.",1:32))
   }
 
 
 
-  sc.data[, ri.index] <- sc.data[, ri.index] / sc.data[, ri.index[1]]
+  #sc.data[, ri.index] <- sc.data[, ri.index] / sc.data[, ri.index[1]]
 
   sc.data <- as.data.table(sc.data)
 
@@ -64,6 +69,9 @@ TMT_Reference_channel_norm <- function(QQC){
   if(plex == 29){
     sc.data <- sc.data[,c('seqcharge','Leading.razor.protein','Raw.file','Well','plate',paste0("Reporter.intensity.",4:32))]
   }
+  if(plex == 32){
+    sc.data <- sc.data[,c('seqcharge','Leading.razor.protein','Raw.file','Well','plate',paste0("Reporter.intensity.",4:32))]
+  }
 
   sc.data <- data.table::melt(sc.data, id = c('seqcharge','Leading.razor.protein','Raw.file','Well','plate'))
 
@@ -71,6 +79,9 @@ TMT_Reference_channel_norm <- function(QQC){
     sc.data <- sc.data[sc.data$value < 2.5,]
   }
   if(plex == 29){
+    #sc.data <- sc.data[sc.data$value < 10,]
+  }
+  if(plex == 32){
     #sc.data <- sc.data[sc.data$value < 10,]
   }
 
@@ -750,6 +761,10 @@ LC_BatchCorrect <- function(QQC){
   }
 
   Rsq_save <- c()
+
+  count = 0
+  #trend_mat <- matrix(data = NA,ncol=ncol(pep_norm),nrow = nrow(pep_norm))
+  #rownames(trend_mat) <- rownames(pep_norm)
   for(i in 1:nrow(pep_norm)){
 
     set_df <- floor(sum(is.na(pep_norm[i,])==F)/11)
@@ -798,6 +813,7 @@ LC_BatchCorrect <- function(QQC){
       R_squared <- 1 - (RSS / TSS)
 
       Rsq_save <- c(Rsq_save,R_squared)
+
       if(R_squared > .1){
 
         x = predicted_y$x
@@ -806,18 +822,49 @@ LC_BatchCorrect <- function(QQC){
         df <- df[order(df$x),]
 
         df_spline <- df_spline[order(df_spline$order),]
-        df_spline$data = df_spline$data-df$y
 
-        pep_norm[i,df_spline$holder] <- df_spline$data
+        pep_norm[i,df_spline$holder] <- df_spline$data-df$y
+        #trend_mat[i,df_spline$holder] <- 0 - df$y
+
+        if(R_squared > .5){
+          count = count+1
+          if(count < 11){
+            if(count == 1){
+              df_plot_redisual <- df_spline
+              df_plot_redisual$model <- df$y
+              df_plot_redisual$score <- as.character(R_squared)
+            }else{
+              df_spline$model <- df$y
+              df_spline$score <- as.character(R_squared)
+              df_plot_redisual <- rbind(df_plot_redisual,df_spline)
+            }
+          }
+        }
 
       }
+
+
+
     }
 
   }
 
   QQC@matricies@peptide <- pep_norm
+  QQC@LC_batch_deviations <- list(Rsq_save,df_plot_redisual)
 
   return(QQC)
+
+}
+
+PlotLC_Deviations <- function(QQC, global_trend = T){
+
+  if(global_trend ==T){
+    hist(QQC@LC_batch_deviations[[1]],main = '', ylab = '# of peptides',xlab = 'Spline Rsq')
+  }
+
+  if(global_trend ==F){
+    ggplot(QQC@LC_batch_deviations[[2]], aes(x = order,y = data)) + geom_point()+ facet_wrap(~score,ncol = 3)
+  }
 
 }
 
