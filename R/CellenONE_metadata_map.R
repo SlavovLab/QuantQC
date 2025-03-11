@@ -218,6 +218,8 @@ analyzeCellenONE_TMT <- function(cells_file,plex){
   label$yPos <- unlist(lapply(labelxyPos, '[[', 1))
   label$xPos <- unlist(lapply(labelxyPos, '[[', 2))
 
+
+
   ## sample pickup file
 
   con_pickup <-file(pickupPath1)
@@ -312,10 +314,38 @@ analyzeCellenONE_TMT <- function(cells_file,plex){
   isoLab$pickupX <- NA
   isoLab$pickupY <- NA
 
+
+  if(plex == 32){
+    isoLab <- isoLab %>% filter(is.na(yPos)==F)
+    isoLab$yPos <- as.numeric(isoLab$yPos)
+    isoLab$yPos[isoLab$yPos > 50] <- isoLab$yPos[isoLab$yPos > 50] + 10
+    isoLab$yPos[isoLab$yPos > 33] <- isoLab$yPos[isoLab$yPos > 33] + 10
+    isoLab$yPos[isoLab$yPos > 17] <- isoLab$yPos[isoLab$yPos > 17] + 10
+
+    pickup$yPos[pickup$yPos > 50] <- pickup$yPos[pickup$yPos > 50] + 10
+    pickup$yPos[pickup$yPos > 33] <- pickup$yPos[pickup$yPos > 33] + 10
+    pickup$yPos[pickup$yPos > 17] <- pickup$yPos[pickup$yPos > 17] + 10
+
+  }
+
   ann_ <- yaImpute::ann(ref = as.matrix(unique(pickup[, c("xPos","yPos")])),  target = as.matrix(isoLab[ , c("xPos","yPos")]), k=1)
   isoLab$ann <-  ann_$knnIndexDist[,1]
-  isoLab_new <- unique(pickup[, c("xPos","yPos")])
 
+  if(plex == 32){
+
+
+    isoLab$yPos[isoLab$yPos > 17] <- isoLab$yPos[isoLab$yPos > 17] - 10
+    isoLab$yPos[isoLab$yPos > 33] <- isoLab$yPos[isoLab$yPos > 33] - 10
+    isoLab$yPos[isoLab$yPos > 50] <- isoLab$yPos[isoLab$yPos > 50] - 10
+
+    pickup$yPos[pickup$yPos > 17] <- pickup$yPos[pickup$yPos > 17] - 10
+    pickup$yPos[pickup$yPos > 33] <- pickup$yPos[pickup$yPos > 33] - 10
+    pickup$yPos[pickup$yPos > 50] <- pickup$yPos[pickup$yPos > 50] - 10
+
+  }
+
+
+  isoLab_new <- unique(pickup[, c("xPos","yPos")])
 
 
   isoLab$pickupX <- isoLab_new[isoLab$ann,]$xPos
@@ -337,6 +367,7 @@ analyzeCellenONE_TMT <- function(cells_file,plex){
 
   ### Clean up to yield final dataframe
   cellenOne_data <- data.frame(sample = isoLab_final$condition, isoTime = isoLab_final$Time, diameter = isoLab_final$Diameter, elongation = isoLab_final$Elongation, slide = isoLab_final$Target, field = isoLab_final$Field, dropXPos = isoLab_final$XPos, dropYPos = isoLab_final$YPos, label = isoLab_final$well.x, pickupXPos = isoLab_final$pickupX, pickupYPos = isoLab_final$pickupY, injectWell = isoLab_final$well.y, picture = isoLab_final$ImageFile)
+
 
 
   ##*sigh* not done yet
