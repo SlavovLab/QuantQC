@@ -88,6 +88,7 @@ matricies_Miceotopes <- setClass(
 #' @export
 MQ_to_QQC <- function(data_path,linker,plex ,PIF_in,PEP_in){
 
+
   linker <- read.csv(linker)
 
   if(plex == 14){
@@ -171,7 +172,7 @@ MQ_to_QQC <- function(data_path,linker,plex ,PIF_in,PEP_in){
   # Filter data
   data<-data %>% filter(PEP < PEP_in)
   data<-data %>% filter(PIF > PIF_in)
-  data<-data %>% filter(Potential.contaminant != '+')
+  #data<-data %>% dplyr::filter(Potential.contaminant != '+')
   data<-data %>% filter(Reverse != '+')
 
 

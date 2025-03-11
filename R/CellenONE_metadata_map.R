@@ -369,7 +369,6 @@ analyzeCellenONE_TMT <- function(cells_file,plex){
   cellenOne_data <- data.frame(sample = isoLab_final$condition, isoTime = isoLab_final$Time, diameter = isoLab_final$Diameter, elongation = isoLab_final$Elongation, slide = isoLab_final$Target, field = isoLab_final$Field, dropXPos = isoLab_final$XPos, dropYPos = isoLab_final$YPos, label = isoLab_final$well.x, pickupXPos = isoLab_final$pickupX, pickupYPos = isoLab_final$pickupY, injectWell = isoLab_final$well.y, picture = isoLab_final$ImageFile)
 
 
-
   ##*sigh* not done yet
 
   cellenOne_data$wellAlph <- substring(cellenOne_data$injectWell, 1, 1)
@@ -427,7 +426,8 @@ analyzeCellenONE_TMT <- function(cells_file,plex){
                   'Reporter.intensity.22','Reporter.intensity.23','Reporter.intensity.24',
                   'Reporter.intensity.25','Reporter.intensity.26','Reporter.intensity.27',
                   'Reporter.intensity.28','Reporter.intensity.29','Reporter.intensity.30',
-                  'Reporter.intensity.31','Reporter.intensity.32')
+                  'Reporter.intensity.31','Reporter.intensity.32','Reporter.intensity.33',
+                  'Reporter.intensity.34','Reporter.intensity.35')
 
     cellenOne_data$label <- as.numeric(cellenOne_data$label)
     cellenOne_data$label_new <- NA
