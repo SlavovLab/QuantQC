@@ -335,6 +335,69 @@ FilterBadCells <- function(QQC, CV_thresh = NA, min_intens = NA){
 }
 
 
+#' Add two numbers.
+#'
+#' This function takes two numeric inputs and returns their sum.
+#'
+#' @param x A numeric value.
+#' @param y A numeric value.
+#' @return The sum of \code{x} and \code{y}.
+#' @examples
+#' add_numbers(2, 3)
+#' @export
+Trim_extra_peptides <- function(QQC){
+  peptide_data <- QQC@matricies@peptide
+  #protein_dat <- r3_10day_male@matricies@protein
+  peptide_protein_map <- QQC@matricies@peptide_protein_map
+
+  upl <- unique(peptide_protein_map$Protein)
+
+  # List describing which protein each peptide comes from
+  prot_list <- peptide_protein_map$Protein
+  rownames(peptide_protein_map) <- peptide_protein_map$seqcharge
+
+  count <- 0
+
+  # Loop over each protein, calculate correlations between peptides mapping to a protein
+
+  new_pep_list <- c()
+  for(i in upl){
+
+    # Matrix for a single protein
+    mat_p1 <- peptide_data[which(prot_list == i),]
+    if(is.null(nrow(mat_p1)) == FALSE ){
+
+      if(nrow(mat_p1) >5){
+        abs_peps1 <- rowMedians(as.matrix(mat_p1[rownames(mat_p1),]),na.rm=T)
+        abs_peps2 <- rowSums(is.na(mat_p1[rownames(mat_p1),])==F)
+        abs_peps1 <- abs_peps1[order(-abs_peps1)]
+        abs_peps2 <- abs_peps2[order(-abs_peps2)]
+        sect <- intersect(names(abs_peps1)[1:5],names(abs_peps2)[1:5])
+
+        if(length(sect) < 4){
+          sect <- names(abs_peps1)[1:5]
+        }
+
+        new_pep_list <- c(new_pep_list,sect)
+      }else{
+        new_pep_list <- c(new_pep_list,rownames(mat_p1))
+      }
+    }else{
+      new_pep_list <- c(new_pep_list,rownames(peptide_protein_map)[peptide_protein_map$Protein == i])
+    }
+  }
+
+  peptide_data <- peptide_data[new_pep_list,]
+
+  peptide_protein_map <- peptide_protein_map[new_pep_list,]
+
+  QQC@matricies@peptide <- peptide_data
+  QQC@matricies@peptide_protein_map <- peptide_protein_map
+
+  return(QQC)
+
+}
+
 
 #' Add two numbers.
 #'
