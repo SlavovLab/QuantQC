@@ -272,6 +272,148 @@ DIANN_to_QQC <- function(data_path,linker_path,plex,carrier = F){
 
 
 
+#' Fragpipe to QQC
+#'
+#' This function takes two numeric inputs and returns their sum.
+#'
+#' @param x A numeric value.
+#' @param y A numeric value.
+#' @return The sum of \code{x} and \code{y}.
+#' @examples
+#' add_numbers(2, 3)
+#' @export
+FragPipe_to_QQC <- function(data_path,linker,plex ,PIF_in){
+
+
+  folders <- list.dirs(data_path, recursive = FALSE)
+
+  columns_to_use <- c('Peptide','Intensity','Apex.Retention.Time','Charge','Spectrum.File','Purity','Protein.ID')
+  psm_list <- lapply(folders, function(folder) {
+    psm_file <- file.path(folder, "psm.tsv")
+    if (file.exists(psm_file)) {
+      read.delim(psm_file)
+    } else {
+      NULL
+    }
+  })
+
+  count = 0
+  for(i in psm_list){
+    if(is.null(i)==F){
+      if(count == 0){
+        data <- i
+        TMT_grab <- colnames(data)[grep('Intensity.',colnames(data))] #<- str_extract(colnames(data)[grep('Intensity.',colnames(data))], "(?<=_)[^_]+$")
+        columns_to_use <- c('Peptide','Intensity','Apex.Retention.Time','Charge','Spectrum.File','Purity','Protein.ID',TMT_grab)
+
+        data <- data %>% dplyr::select(all_of(columns_to_use))
+
+
+        colnames(data)[grep('Intensity.',colnames(data))] <- str_extract(colnames(data)[grep('Intensity.',colnames(data))], "(?<=_)[^_]+$")
+
+      }else{
+        data1 <- i
+
+        TMT_grab <- colnames(data1)[grep('Intensity.',colnames(data1))] #<- str_extract(colnames(data)[grep('Intensity.',colnames(data))], "(?<=_)[^_]+$")
+        columns_to_use <- c('Peptide','Intensity','Apex.Retention.Time','Charge','Spectrum.File','Purity','Protein.ID',TMT_grab)
+        data1 <- data1 %>% dplyr::select(all_of(columns_to_use))
+        colnames(data1)[grep('Intensity.',colnames(data1))] <- str_extract(colnames(data1)[grep('Intensity.',colnames(data1))], "(?<=_)[^_]+$")
+
+        data <-rbind(data,data1)
+      }
+      count <- 1
+    }
+  }
+
+
+
+
+  parts <- str_split(data$Spectrum.File, "\\\\")
+  data$Spectrum.File <- sapply(parts, function(x) x[length(x) - 1])
+
+
+
+
+
+
+  linker <- read.csv(linker)
+
+
+
+
+  if(plex == 32){
+
+
+    map_FP <- c("126", "127N", "127C","128N",
+             "128C","129N","129C",
+             "130N","130C","131N",
+             "131C","132N","132C",
+             "133N","133C","134N",
+             "134C","135N","127D",
+             "128ND","128CD","129ND",
+             "129CD","130ND","130CD",
+             "131ND","131CD","132ND",
+             "132CD","133ND","133CD",
+             "134ND","134CD","135ND","135CD")
+
+    map_MQ <-  c("1", "2", "3","5",
+                 "7","9","11",
+                 "13","15","17",
+                 "19","21","23",
+                 "25","27","29",
+                 "31","33","4",
+                 "6","8","10",
+                 "12","14","16",
+                 "18","20","22",
+                 "24","26","28",
+                 "30","32","34","35")
+
+    map_MQ <- paste0('Reporter.ion.', map_MQ)
+
+    columns_renamed <- c('Modified.sequence','Intensity','Retention.time','Charge','Raw.file','PIF','Leading.razor.protein',map_MQ)
+
+    colnames(data) <- columns_renamed
+
+  }
+
+
+
+
+  # Filter for only raw files in the linker
+  data <- data %>% dplyr::filter(Raw.file %in% linker$Run)
+
+  # Denote run order
+  linker$Order <- 1:nrow(linker)
+
+  #Link data to inject wells
+  data <- data %>% left_join(linker, by = c('Raw.file'= 'Run'))
+
+  # Unique precursor ID
+  data$seqcharge <- paste0(data$Modified.sequence,data$Charge)
+  data$seqRun <- paste0(data$seqcharge, data$Raw.file)
+  data <- data %>% distinct(seqRun,.keep_all = T)
+
+
+
+
+
+  # Filter data
+  #data<-data %>% filter(PEP < PEP_in)
+  data<-data %>% dplyr::filter(PIF > PIF_in)
+  #data<-data %>% dplyr::filter(Potential.contaminant != '+')
+  #data<-data %>% filter(Reverse != '+')
+
+
+
+  QQC <- new('QQC',raw_data = data, meta.data = linker ,ms_type = 'DDA', misc = list(plex = plex))
+
+
+  return(QQC)
+
+}
+
+
+
+
 
 
 
