@@ -6,8 +6,8 @@
 
 * [Preprint of Protocol](https://scp.slavovlab.net/Leduc_et_al_2022)
 
-* [Preprint Original Article](https://www.biorxiv.org/content/10.1101/2021.11.03.467007v2) &nbsp; | &nbsp; [*Genome Biology* Article](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-022-02817-5)
-
+* [Preprint Original Article](https://www.biorxiv.org/content/10.1101/2021.11.03.467007v2) &nbsp; | &nbsp; [*Genome Biology* Article](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-022-02817-5) &nbsp;
+| &nbsp; [*Nature Communications* Article](https://www.nature.com/articles/s41467-025-56736-7)
 
 &nbsp;
 
