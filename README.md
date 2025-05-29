@@ -50,7 +50,7 @@ library(QuantQC)
 QuantQC is an R package
 
 -->
-The manuscript is freely available on bioRxiv: [Leduc et al., 2023](https://www.biorxiv.org/content/10.1101/2021.11.03.467007v2).
+The manuscript is freely available on *bioRxiv* [Leduc et al., 2023](https://www.biorxiv.org/content/10.1101/2024.07.26.605378v1) and at *Nature Communications*, doi: [10.1038/s41467-025-56736-7](https://www.nature.com/articles/s41467-025-56736-7)
 
 For more information, contact [Slavov Laboratory](https://slavovlab.net) or directly [Andrew Leduc](https://coe.northeastern.edu/people/slavov-nikolai/)
 
